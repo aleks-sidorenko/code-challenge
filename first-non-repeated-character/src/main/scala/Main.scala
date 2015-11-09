@@ -4,6 +4,7 @@ object Main extends App {
   for (line <- lines) {
     line.find( x => line.indexOf(x) == line.lastIndexOf(x)) match  {
       case Some(x) => println(x)
+      case _ => println()
     }
 
   }
