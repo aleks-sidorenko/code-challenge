@@ -1,1 +1,1 @@
-(Longest Common Subsequence)[https://www.codeeval.com/browse/6/]
+(Longest Common Subsequence)[https://www.codeeval.com/open_challenges/6/]

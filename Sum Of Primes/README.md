@@ -1,1 +1,1 @@
-(Sum Of Primes)[https://www.codeeval.com/public_sc/5/]
+(Sum Of Primes)[https://www.codeeval.com/open_challenges/4/]
