@@ -1,1 +1,1 @@
-(Detecting Cycles)[https://www.codeeval.com/open_challenges/5/]
+[Link](https://www.codeeval.com/open_challenges/5/)
