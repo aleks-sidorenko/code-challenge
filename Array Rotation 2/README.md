@@ -1,1 +1,1 @@
-(Link)[https://www.hackerrank.com/challenges/array-rotation-2]
+[Link](https://www.hackerrank.com/challenges/array-rotation-2)

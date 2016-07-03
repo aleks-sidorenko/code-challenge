@@ -1,1 +1,1 @@
-[Link](https://www.interviewcake.com/question/python/coin)
+[Link](https://www.hackerrank.com/challenges/angry-professor)
