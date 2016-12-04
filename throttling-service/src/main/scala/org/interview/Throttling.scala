@@ -1,20 +1,47 @@
 package org.interview
 
-import Authentication.{Token, User, optionalHeaderValueByName, provide}
-import akka.http.scaladsl.server.{Directive0, Directive1, Directives}
-import com.typesafe.scalalogging.LazyLogging
+import java.util.concurrent.atomic.AtomicInteger
 
-import scala.concurrent.Future
+import akka.http.scaladsl.model.StatusCodes._
+import akka.http.scaladsl.server.{Directive0, Directives}
+import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.scalalogging.LazyLogging
+import org.interview.Authentication.User
+import org.interview.Throttling.{CachingSlaService, SlaServiceImpl, ThrottlingService}
+import scala.annotation.tailrec
+import scala.concurrent.{ExecutionContext, Future}
 
 object Throttling {
 
-  case class Sla(user: User, rps: Int)
+  final case class Sla(user: User, rps: Int)
 
   trait SlaService {
-
     def getSlaByUser(user: User): Future[Sla]
-
   }
+
+  class SlaServiceImpl(implicit val executionContext: ExecutionContext) extends SlaService {
+    override def getSlaByUser(user: User): Future[Sla] = Future {
+
+      Sla(user, 10)
+    }
+  }
+
+  final class CachingSlaService(val slaService: SlaService)(implicit val executionContext: ExecutionContext)
+    extends SlaService {
+
+    var slaCache: Map[User, Future[Sla]] = Map()
+
+    override def getSlaByUser(user: User): Future[Sla] = {
+      slaCache.get(user) match {
+        case Some(sla) => sla
+        case None =>
+          val sla = slaService.getSlaByUser(user)
+          slaCache = slaCache + (user -> sla)
+          sla
+      }
+    }
+  }
+
 
   trait ThrottlingService {
 
@@ -26,35 +53,66 @@ object Throttling {
   }
 
   object ThrottlingService {
-    def apply(graceRps: Int)
+    def apply(graceRps: Int, slaService: SlaService): ThrottlingService = {
+      new ThrottlingServiceImpl(graceRps, slaService)
+    }
   }
 
-  private[Throttling] class ThrottlingServiceImpl(override val graceRps: Int, override val slaService: SlaService)
+  private[Throttling] final class ThrottlingServiceImpl(override val graceRps: Int,
+                                                        override val slaService: SlaService)
     extends ThrottlingService {
 
-    override def isRequestAllowed(user: User): Boolean = ???
-  }
+    import Authentication.anonymousUser
 
+    private[this] var userRps: Map[User, RpsLimit] = Map(anonymousUser -> RpsLimit(graceRps))
 
-  object Throttler extends LazyLogging with Directives with Configuration {
+    @tailrec
+    override def isRequestAllowed(user: User): Boolean = {
+      userRps.get(user) match {
+        case Some(rpsLimit) => rpsLimit.allow()
+        case _ =>
+          val sla = slaService.getSlaByUser(user)
+          if (sla.isCompleted) {
+            sla.value match {
+              case Some(scala.util.Success(s)) => {
+                val limit = RpsLimit(s.rps)
+                userRps = userRps + (s.user -> limit)
+                limit.allow()
+              }
+              case _ => false
+            }
 
-    override def config =
-    private[Throttler] val throttlingService = ThrottlingService()
-
-    def throttling(user: User): Directive0 = {
-
-
-
-      optionalHeaderValueByName("Authorization").flatMap {
-        case Some(authHeader) =>
-          val accessToken = authHeader.split(' ').last
-          userRepository.getUserFromAccessToken(accessToken) match {
-            case Some(user) => provide(user)
-            case _ => provide(anonymous)
+          } else {
+            isRequestAllowed(anonymousUser)
           }
-        case _ => provide(anonymous)
       }
     }
   }
+
+  case class RpsLimit(val rps: Int) {
+    val allowedRps: AtomicInteger = new AtomicInteger(rps)
+
+    def allow(): Boolean = {
+      allowedRps.get() > 0
+    }
+  }
+
+}
+
+final object Throttler extends LazyLogging with Directives with Configuration {
+
+  override def config: Config = ConfigFactory.load()
+
+  private[Throttler] val throttlingService = ThrottlingService(
+    throttling.graceRps,
+    new CachingSlaService(new SlaServiceImpl))
+
+  def throttle(user: User): Directive0 = {
+
+    if (throttlingService.isRequestAllowed(user)) pass else complete(TooManyRequests)
+
+  }
+
+}
 
 }

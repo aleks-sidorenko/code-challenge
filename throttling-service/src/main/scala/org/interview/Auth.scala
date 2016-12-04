@@ -8,19 +8,19 @@ object Authentication extends LazyLogging with Directives {
   type Token = String
   type User = String
 
-  private val anonymous: User = "anonymous"
+  val anonymousUser: User = "anonymous"
 
   val userRepository = UserRepository
 
   def authenticate: Directive1[User] = {
     optionalHeaderValueByName("Authorization").flatMap {
-      case Some(authHeader) =>
-        val accessToken = authHeader.split(' ').last
+      case Some(tokenHeader) =>
+        val accessToken = tokenHeader.split(' ').last
         userRepository.getUserFromAccessToken(accessToken) match {
           case Some(user) => provide(user)
-          case _ => provide(anonymous)
+          case _ => provide(anonymousUser)
         }
-      case _ => provide(anonymous)
+      case _ => provide(anonymousUser)
     }
   }
 
