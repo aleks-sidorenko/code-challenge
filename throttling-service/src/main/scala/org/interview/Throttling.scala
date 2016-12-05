@@ -1,15 +1,17 @@
 package org.interview
 
-import java.util.concurrent.atomic.AtomicInteger
+import java.time.Duration
+import java.util.concurrent.atomic.{ AtomicInteger, AtomicLong }
 
 import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.server.{Directive0, Directives}
-import com.typesafe.config.{Config, ConfigFactory}
+import akka.http.scaladsl.server.{ Directive0, Directives }
+import com.typesafe.config.{ Config, ConfigFactory }
 import com.typesafe.scalalogging.LazyLogging
 import org.interview.Authentication.User
-import org.interview.Throttling.{CachingSlaService, SlaServiceImpl, ThrottlingService}
+
 import scala.annotation.tailrec
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.blocking
+import scala.concurrent.{ ExecutionContext, Future }
 
 object Throttling {
 
@@ -19,15 +21,17 @@ object Throttling {
     def getSlaByUser(user: User): Future[Sla]
   }
 
-  class SlaServiceImpl(implicit val executionContext: ExecutionContext) extends SlaService {
+  class SlaServiceImpl(val userRps: Int)(implicit val executionContext: ExecutionContext) extends SlaService {
     override def getSlaByUser(user: User): Future[Sla] = Future {
-
-      Sla(user, 10)
+      blocking {
+        Thread.sleep(250)
+      }
+      Sla(user, userRps)
     }
   }
 
   final class CachingSlaService(val slaService: SlaService)(implicit val executionContext: ExecutionContext)
-    extends SlaService {
+      extends SlaService {
 
     var slaCache: Map[User, Future[Sla]] = Map()
 
@@ -42,7 +46,6 @@ object Throttling {
     }
   }
 
-
   trait ThrottlingService {
 
     val graceRps: Int
@@ -53,66 +56,116 @@ object Throttling {
   }
 
   object ThrottlingService {
-    def apply(graceRps: Int, slaService: SlaService): ThrottlingService = {
-      new ThrottlingServiceImpl(graceRps, slaService)
+    def apply(graceRps: Int, slaService: SlaService, renewRate: Double, renewInterval: Duration): ThrottlingService = {
+      new ThrottlingServiceImpl(graceRps, slaService, renewRate, renewInterval)
     }
   }
 
-  private[Throttling] final class ThrottlingServiceImpl(override val graceRps: Int,
-                                                        override val slaService: SlaService)
-    extends ThrottlingService {
+  private[Throttling] final class ThrottlingServiceImpl(
+    override val graceRps: Int,
+    override val slaService: SlaService,
+    val renewRate: Double,
+    val renewInterval: Duration
+  )
+      extends ThrottlingService {
 
     import Authentication.anonymousUser
 
-    private[this] var userRps: Map[User, RpsLimit] = Map(anonymousUser -> RpsLimit(graceRps))
+    private[this] var userRps: Map[User, RpsLimit] = Map(
+      anonymousUser -> RpsLimit(graceRps, RpsRenewer((renewRate * graceRps).toInt, renewInterval))
+    )
 
     @tailrec
     override def isRequestAllowed(user: User): Boolean = {
       userRps.get(user) match {
         case Some(rpsLimit) => rpsLimit.allow()
-        case _ =>
+        case _ => {
           val sla = slaService.getSlaByUser(user)
           if (sla.isCompleted) {
             sla.value match {
               case Some(scala.util.Success(s)) => {
-                val limit = RpsLimit(s.rps)
+                val limit = RpsLimit(s.rps, RpsRenewer((s.rps * renewRate).toInt, renewInterval))
                 userRps = userRps + (s.user -> limit)
                 limit.allow()
               }
               case _ => false
             }
-
           } else {
             isRequestAllowed(anonymousUser)
           }
+        }
       }
     }
   }
 
-  case class RpsLimit(val rps: Int) {
-    val allowedRps: AtomicInteger = new AtomicInteger(rps)
+  case class RpsRenewer(renewRps: Int, interval: Duration) {
 
-    def allow(): Boolean = {
-      allowedRps.get() > 0
+    val lastRenewed: AtomicLong = new AtomicLong(System.currentTimeMillis())
+    final val zeroRps: Int = 0
+
+    @tailrec
+    final def renewed(): Int = {
+      val now = System.currentTimeMillis()
+      val intervalMs = interval.toMillis
+
+      val lastRenewed = this.lastRenewed.get()
+      val nextRenew = lastRenewed + intervalMs
+
+      if (now >= nextRenew) {
+        if (this.lastRenewed.compareAndSet(lastRenewed, now)) {
+          renewRps
+        } else {
+          renewed()
+        }
+      } else {
+        zeroRps
+      }
     }
   }
 
-}
+  case class RpsLimit(maxRps: Int, renewer: RpsRenewer) {
+    val rps: AtomicInteger = new AtomicInteger(maxRps)
 
-final object Throttler extends LazyLogging with Directives with Configuration {
+    final def allow(): Boolean = {
+      val renewedRps = renewer.renewed()
+      tryAllow(renewedRps)
+    }
 
-  override def config: Config = ConfigFactory.load()
-
-  private[Throttler] val throttlingService = ThrottlingService(
-    throttling.graceRps,
-    new CachingSlaService(new SlaServiceImpl))
-
-  def throttle(user: User): Directive0 = {
-
-    if (throttlingService.isRequestAllowed(user)) pass else complete(TooManyRequests)
-
+    @tailrec
+    private final def tryAllow(renewedRps: Int): Boolean = {
+      val currentRps = rps.get()
+      val newRps = math.min(maxRps, currentRps + renewedRps)
+      if (newRps > 0) {
+        if (rps.compareAndSet(currentRps, newRps - 1)) {
+          true
+        } else {
+          tryAllow(renewedRps)
+        }
+      } else {
+        false
+      }
+    }
   }
 
-}
+  final object Throttler extends LazyLogging with Directives with Configuration {
+
+    override def config: Config = ConfigFactory.load()
+
+    import scala.concurrent.ExecutionContext.Implicits.global
+
+    private[Throttler] val throttlingService = ThrottlingService(
+      throttling.graceRps,
+      new CachingSlaService(new SlaServiceImpl(throttling.userRps)),
+      throttling.renewRate,
+      throttling.renewInterval
+    )
+
+    def throttle(user: User): Directive0 = {
+
+      if (throttlingService.isRequestAllowed(user)) pass else complete(TooManyRequests)
+
+    }
+
+  }
 
 }

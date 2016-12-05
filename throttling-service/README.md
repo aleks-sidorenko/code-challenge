@@ -57,8 +57,4 @@ As source control consider to use any git based repository.
 
 
 # Running
-* run terminal 1
-* cd to project's folder 
-* `sbt run`
-* run terminal 2 
-* run `curl http://localhost:9000/top10?login=alagoon` few times & watch logs
+ _..NOT TESTED...In progress_

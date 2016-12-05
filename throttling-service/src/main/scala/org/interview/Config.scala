@@ -17,6 +17,9 @@ trait Configuration {
 
   object throttling {
     val graceRps = appConfig.getInt("throttling.graceRps")
+    val userRps = appConfig.getInt("throttling.userRps")
+    val renewRate = appConfig.getDouble("throttling.renewRate")
+    val renewInterval = appConfig.getDuration("throttling.renewInterval")
   }
 
 }
