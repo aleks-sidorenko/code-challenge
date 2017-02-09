@@ -32,8 +32,6 @@ object Solution {
         for(a_i <- 0 to n-1) {
            a(a_i) = sc.nextInt()
         }
-        import scala.math.Ordering._
-        import scala.math.Ordered._
             
         val result = bubbleSort(a)
         println(s"Array is sorted in ${result} swaps.")
