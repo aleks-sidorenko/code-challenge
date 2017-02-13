@@ -11,15 +11,27 @@ object Solution {
         (k, a)
     }
     
-    def rotateLeft(array: Array[Int], k: Int): Array[Int] = {
-        val shifted = array.take(k)
-        val rest = array.drop(k)
-        rest ++ shifted
+    
+    
+    def rotateLeft(array: Array[Int], start: Int, finish: Int): Unit = {
+        val middle = (finish + start) / 2
+        for (i <- start to middle) {
+            val tmp = array(i)    
+            array(i) = array(start + finish - i)
+            array(start + finish - i) = tmp
+        }
+        
     }
 
     def main(args: Array[String]) = {
         val (k, array) = readInput()
-        print(rotateLeft(array, k).mkString(" "))
+        val n = array.length
+        rotateLeft(array, 0, n - 1)        
+        rotateLeft(array, 0, n - k - 1)
+        rotateLeft(array, n - k, n - 1)
+        
+        
+        print(array.mkString(" "))
         
     }
 }
