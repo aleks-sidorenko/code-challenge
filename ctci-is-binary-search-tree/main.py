@@ -38,7 +38,6 @@ def is_binary_search_tree(node):
         return False
     
     return is_binary_search_tree(node.left) and is_binary_search_tree(node.right)
-    
 
     
 def check_binary_search_tree_(root):
