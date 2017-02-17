@@ -1,3 +1,5 @@
+import scala.collection._
+    
 object Solution {
 
     object Trie {
@@ -9,11 +11,43 @@ object Solution {
         def find(prefix: String): Seq[String]
     }
     
-    private class TrieNode(char: Option[Char] = None, word: Option[String] = None)
+    private class TrieNode(private var data: Option[String] = None)
         extends Trie {
+     
+        private val children: mutable.Map[Char, TrieNode] = new mutable.HashMap[Char, TrieNode]()
+            
+        override def add(word: String) = {
+            addAt(word, 0)
+        }
         
-        override def add(word: String) = {}
-        override def find(prefix: String): Seq[String] = List.empty[String]
+        private def addAt(word: String, index: Int): Unit = {
+            
+            val char = word(index)
+                
+            index match {                
+                case i if i == word.length - 1 => data = Some(word)
+                case i => val child = children.getOrElseUpdate(char, new TrieNode()); child.addAt(word, i + 1)                                
+            }
+        }
+        
+        override def find(prefix: String): Seq[String] = {
+            
+        }
+        
+        private def findAt(prefix: String, index: Int) : Seq[String] = {
+            index match {                
+                case i if i >= prefix.length => 
+                    
+                case i => val child = children.getOrElseUpdate(char, new TrieNode()); child.addAt(word, i + 1)                                
+            }
+            val char = prefix(index)
+            
+            val child = children.get(char)
+                
+            word match {
+                Some(w) => w :: child.flatMap(_.findAt(prefix, index + 1)).getOrElse(Nil)
+            }
+        }
     }
     
     def readInput(): Seq[(String, String)] = {
