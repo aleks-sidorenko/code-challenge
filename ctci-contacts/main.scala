@@ -1,4 +1,5 @@
 import scala.collection._
+import scala.collection.JavaConverters._
     
 object Solution {
 
@@ -8,47 +9,52 @@ object Solution {
     
     trait Trie {
         def add(word: String)
-        def find(prefix: String): Seq[String]
+        def find(prefix: String): Int
     }
     
-    private class TrieNode(private var data: Option[String] = None)
+    private class TrieNode()
         extends Trie {
      
+        private var count: Int = 0
+            
         private val children: mutable.Map[Char, TrieNode] = new mutable.HashMap[Char, TrieNode]()
             
-        override def add(word: String) = {
+        final override def add(word: String) = {
             addAt(word, 0)
         }
         
-        private def addAt(word: String, index: Int): Unit = {
+        
+        private def addAt(word: String, level: Int): Unit = {
             
+            count += 1;
+            
+            val index = level
+            if (index == word.length) {
+                return
+            }
+            
+                                                
             val char = word(index)
+                                     
+            val child = children.getOrElseUpdate(char, new TrieNode())
+            child.addAt(word, level + 1)                        
+        }
                 
-            index match {                
-                case i if i == word.length - 1 => data = Some(word)
-                case i => val child = children.getOrElseUpdate(char, new TrieNode()); child.addAt(word, i + 1)                                
-            }
+        final override def find(prefix: String): Int = {
+            findAt(prefix, 0)
         }
         
-        override def find(prefix: String): Seq[String] = {
-            
+        private final def findAt(prefix: String, level: Int) : Int = {
+            if (level < prefix.length) {
+                val char = prefix(level)
+                children.get(char).map { trie => trie.findAt(prefix, level + 1) } getOrElse 0
+            } else {
+                count
+            }             
         }
         
-        private def findAt(prefix: String, index: Int) : Seq[String] = {
-            index match {                
-                case i if i >= prefix.length => 
-                    
-                case i => val child = children.getOrElseUpdate(char, new TrieNode()); child.addAt(word, i + 1)                                
-            }
-            val char = prefix(index)
-            
-            val child = children.get(char)
-                
-            word match {
-                Some(w) => w :: child.flatMap(_.findAt(prefix, index + 1)).getOrElse(Nil)
-            }
-        }
     }
+    
     
     def readInput(): Seq[(String, String)] = {
         val sc = new java.util.Scanner (System.in)
@@ -62,12 +68,14 @@ object Solution {
         val trie = Trie()
             
         val input = readInput()
+        
         input.foreach { 
             case (op, word) => op match {
                 case "add" => trie.add(word)
-                case "find" => println(trie.find(word).length)
+                case "find" => println(trie.find(word))
             }
                       
-        }
+        }        
+       
     }
 }
