@@ -3,6 +3,8 @@ import scala.collection.JavaConverters._
     
 object Solution {
 
+    final val CHARS_COUNT = 26
+        
     object Trie {
         def apply() : Trie = new TrieNode()
     }
@@ -17,10 +19,25 @@ object Solution {
      
         private var count: Int = 0
             
-        private val children: mutable.Map[Char, TrieNode] = new mutable.HashMap[Char, TrieNode]()
+        private val children: Array[TrieNode] = new Array[TrieNode](CHARS_COUNT)
             
         final override def add(word: String) = {
             addAt(word, 0)
+        }
+        
+        private def getIndex(char: Char) = char - 'a'
+            
+        private def getChild(char: Char): TrieNode = {            
+            children(getIndex(char))
+        }
+        
+        private def getChildOrCreate(char: Char): TrieNode = {            
+            var child = children(getIndex(char))
+            if (child eq null) {
+                child = new TrieNode
+                children(getIndex(char)) = child
+            }
+            child
         }
         
         
@@ -32,11 +49,10 @@ object Solution {
             if (index == word.length) {
                 return
             }
-            
-                                                
+                                                            
             val char = word(index)
-                                     
-            val child = children.getOrElseUpdate(char, new TrieNode())
+                        
+            val child = getChildOrCreate(char)
             child.addAt(word, level + 1)                        
         }
                 
@@ -47,7 +63,12 @@ object Solution {
         private final def findAt(prefix: String, level: Int) : Int = {
             if (level < prefix.length) {
                 val char = prefix(level)
-                children.get(char).map { trie => trie.findAt(prefix, level + 1) } getOrElse 0
+                val child = getChild(char)
+                if (child ne null) {
+                    child.findAt(prefix, level + 1)
+                } else {
+                    0
+                }
             } else {
                 count
             }             
