@@ -11,26 +11,33 @@ object Solution {
         
         def distances: Seq[Int] = {
             
-            visit(root, 0)
+            visit()
             val result = dist.take(root.index) ++ dist.drop(root.index + 1)
             result.map {d => if (d != Initial) d * Ratio else d }
         }
         
 
-        private def process(node: GraphNode, level: Int): Unit = {
-            if (dist(node.index) == Initial) dist(node.index) = level
+        private def set(node: GraphNode, path: Int): Unit = {
+            if (dist(node.index) == Initial) dist(node.index) = path
 
-            dist(node.index) = math.min(level, dist(node.index))
+            dist(node.index) = math.min(path, dist(node.index))
         }
         
-        private def visit(node: GraphNode, level: Int): Unit = {
-            println(s"nodeCount: $nodeCount, edgeCount: $edgeCount, visiting node: ${node.id}, level: $level, dist: ${dist(node.index)}")
-            if (dist(node.index) != Initial && dist(node.index) < level) return
-
-            process(node, level)
-
-            node.links.foreach {l => process(l, level + 1)}
-            node.links.foreach {l => visit(l, level + 1)}
+        private def visit(): Unit = {
+            
+            val nexts = new mutable.ListBuffer[(Int, GraphNode)]
+            
+            nexts += 0 -> root
+            while (!nexts.isEmpty) {
+                val (path, node) = nexts.remove(0)
+                
+                if (!visited(node.id)) {
+                    visited += node.id
+                    set(node, path)
+                    
+                    nexts ++= node.links.map {l => (path + 1, l)}
+                }                
+            }            
         }
 
     }
