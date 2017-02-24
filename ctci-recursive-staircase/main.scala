@@ -1,3 +1,5 @@
+import scala.collection._
+    
 object Solution {
 
     def readInput(): List[Int] = {
@@ -11,14 +13,13 @@ object Solution {
     }
     
     val steps = List(1, 2, 3)
-    
+    val cache = new mutable.HashMap[Int, Int]()
+        
     def ways(num: Int): Int = {
-        num match {
-            case n if n < 0 => 0
-            case n if n == 0 => 1
-            case _ => steps.map(s => ways(num - s)).sum
-        }
-    }
+        if (num == 0) return 1
+        if (num < 0) return 0
+        cache.getOrElseUpdate(num, steps.map(s => ways(num - s)).sum)
+     }
     
     def main(args: Array[String]) {
         val stairs = readInput()
