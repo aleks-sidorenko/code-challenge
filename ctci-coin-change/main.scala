@@ -14,22 +14,18 @@ object Solution {
         (n, coins.toList)
     }
     
-    
+    def ways(num: Int, coins: List[Int]): Long = {
+        val cache = new mutable.HashMap[String, Long]()
         
-    def ways(num: Int, coins: List[Int]): Int = {        
-        val cache = new mutable.HashMap[Int, Int]()                
-        def calc(n: Int, min: Int): Int = {
-            println(s"$n, $min")
-            println(cache.mkString(" "))
-            if (n == min) return cache.getOrElseUpdate(n, 1)
-            if (n < min) return 0            
+        def key(n: Int, cs: List[Int]): String = s"${n}_${cs.mkString}"
             
-            val cs = coins.filter(_ >= min)
-            
-            cache.getOrElseUpdate(n, cs.map(c => calc(n - c, c)).sum)
+        def calc(n: Int, cs: List[Int]): Long = {
+            if (n == 0) return 1
+            if (n < 0) return 0            
+            cache.getOrElseUpdate(key(n, cs), cs.map(c => calc(n - c, cs.filter(_ >= c))).sum)            
         }
         
-        calc(num, 0)
+        calc(num, coins)
      }
     
     def main(args: Array[String]) {
