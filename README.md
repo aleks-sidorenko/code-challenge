@@ -1,4 +1,5 @@
 # Playground for code challanges:
-* [Codeeval](https://www.codeeval.com/)
-* [Hackerrank](https://www.hackerrank.com/)
-* [Topcoder](https://www.topcoder.com/)
+* [Hackerrank](https://www.hackerrank.com/aleks_sidorenko)
+* [Codeeval](https://www.codeeval.com/profile/aleks.sidorenko/)
+* [Topcoder](https://www.topcoder.com/members/aleks.sidorenko)
+* [Leetcode](https://leetcode.com/alekssidorenko/)
