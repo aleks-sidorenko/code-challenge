@@ -1,0 +1,1 @@
+[Merging Communities](https://www.hackerrank.com/challenges/merging-communities)
