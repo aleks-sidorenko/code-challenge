@@ -1,3 +1,5 @@
+import scala.collection._
+    
 object Solution {
     sealed trait Action {}
     case class Query(i: Int) extends Action
@@ -25,13 +27,25 @@ object Solution {
         
     }    
     
-    def processActions(communities: Map[Int, Set[Int]], actions: List[Action]) = {
-        println(communities)
+    def applyAction(communities: mutable.Map[Int, mutable.Set[Int]], action: Action) = {
+        action match {
+            case Query(i) => println(communities(i).size)
+            case Merge(i, j) => {
+                val comI = communities(i)
+                val comJ = communities(j)
+                val merged = comI.union(comJ)
+                merged.foreach(k => communities(k) = merged)
+            }
+        }
+    }
+    
+    def processActions(communities: mutable.Map[Int, mutable.Set[Int]], actions: List[Action]) = {
+        actions.foreach(applyAction(communities, _))
     }
     
     def main(args: Array[String]) {
         val (n, actions) = readInput()
-        val communities = (1 to n).groupBy(identity).mapValues(i => Set(i.head))
-        processActions(communities, actions)
+        val communities = (1 to n).groupBy(identity).mapValues(i => mutable.Set(i.head))
+        processActions(mutable.Map() ++ communities, actions)
     }
 }
