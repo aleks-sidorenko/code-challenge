@@ -1,5 +1,6 @@
 package com.interview
 
+import java.util.concurrent.TimeUnit
 import java.util.{ Date, Timer, TimerTask }
 
 import akka.actor.ActorSystem
@@ -102,10 +103,11 @@ object Dribbble {
       resF flatMap { res =>
         res match {
           case HttpResponse(StatusCodes.TooManyRequests, _, _, _) =>
-            val timeLeft = res.headers.find(_.name == "X-RateLimit-Reset").map(_.value.toLong)
-              .getOrElse(0.toLong) * 1000
+            val nextTime = FiniteDuration(res.headers.find(_.name == "X-RateLimit-Reset").map(_.value.toLong)
+              .getOrElse(0L), TimeUnit.SECONDS)
+            val now = FiniteDuration(new Date().getTime, TimeUnit.MILLISECONDS)
 
-            retryIn((timeLeft - new Date().getTime) milliseconds) {
+            retryIn(nextTime - now) {
               get[T](relativeUrl)
             }
           case _ => Future.successful(unmarshal[T](implicitly)(res))
@@ -113,16 +115,12 @@ object Dribbble {
       }
     }
 
-    private[this] def retryIn[T](duration: Duration)(action: => Future[T]) = {
+    private[this] def retryIn[T](delay: FiniteDuration)(action: => Future[T]) = {
       val promise = Promise[T]()
 
-      log.debug(s"Retrying in $duration")
+      log.debug(s"Retrying in $delay")
 
-      new Timer().schedule(new TimerTask {
-        override def run() {
-          promise.completeWith(action)
-        }
-      }, duration.toMillis)
+      system.scheduler.scheduleOnce(delay)(() => promise.completeWith(action))
 
       promise.future
     }
