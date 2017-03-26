@@ -1,4 +1,5 @@
-# Task
+#Dribble Top 10
+## Task
 You have to create tool to calculate Dribbble stats using dribble public api:
 1. For given Dribbble user find all followers
 2. For each follower find all shots
@@ -13,7 +14,7 @@ Output the results as json.
 Think about:
 How to deal with Dribbble API Limits? Try solve this problem in your solution.
 
-# Running
+## Running
 * run terminal 1
 * cd to project's folder 
 * `sbt run`
