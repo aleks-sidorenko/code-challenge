@@ -11,22 +11,17 @@ object Solution {
         private def check(str: String, words: List[String]): Option[List[String]] = {
             if (str.isEmpty) return Some(Nil)
             
-            val matched = words.filter(str.startsWith(_))
-            if (matched.isEmpty) return None
-                
-            val res = matched.flatMap { m => 
-                val rest = str.slice(m.length, str.length - m.length)
-                check(rest, words) match {
-                    case Some(list) => rest :: list
-                    case None => Nil
-                }
-            }
+            val matched = words.find(str.startsWith(_))
             
-            res match {
-                case Nil => None
-                case l: List[String] => Some(l)
-            }
-                
+            matched match {
+                case Some(m) => 
+                    val rest = str.slice(m.length, str.length)
+                    check(rest, words) match {
+                       case Some(list) => Some(m :: list)
+                       case None => None
+                    }
+                case None => None
+            }   
         }
     }
     
