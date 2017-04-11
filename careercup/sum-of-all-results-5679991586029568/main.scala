@@ -8,21 +8,28 @@ object Solution {
     strings.toList
   }
 
-  def sum(nums: List[Int]): Int = {
-    import math._
-    nums match {
-      case head::tail => {
-        val rest = sum(tail)
-        abs(head + rest) + abs(-1*head + rest) + abs(head - rest) + abs(-1*head - rest)
-        }
-      case Nil => 0
+  def sum(numbers: List[Int]): Int = {
+    def sumHelper(sumSoFar: Int, nums: List[Int], prev: Int = 0): Int = {
+      import math._
+      nums match {
+        case head::tail => {
+            val cur = prev * 10 + head
+            sumHelper(sumSoFar - head, tail, 0) + sumHelper(sumSoFar + head, tail, 0) 
+              + sumHelper(sumSoFar - cur, tail, cur)
+              + sumHelper(sumSoFar + cur, tail, cur)
+            
+          }
+        case Nil => abs(sumSoFar)
+      }
     }
+
+    sumHelper(0, numbers)
+
   }
 
   def main(args: Array[String]) {
     val strings = readInput
 
-    
     strings.foreach(s => println(sum(s)))
   }
 }
