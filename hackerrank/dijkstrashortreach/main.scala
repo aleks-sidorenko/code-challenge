@@ -16,20 +16,16 @@ object Solution {
     type DistMap = mutable.Map[NodeId, Distance]
     type VisitMap = mutable.Map[NodeId, Boolean]
 
-    private final val initialDistance = -1
+    private final val initialDistance = Distance.MaxValue
 
     private val nodeMap = nodes.map(n => n.id -> n).toMap
     private val connectionMap = nodes.map(n => n.id -> connections(n.id)).toMap
 
 
     def distances(start: NodeId): List[Distance] = {
-      val dist = initMap(() => initialDistance)
-      
-      val visited = initMap(() => false)
-      val queue = new mutable.Queue[NodeId]()
-
-      queue += start
-
+      val dist = dist(start, () => initialDistance)
+      val toVisit = toVisit()
+    
       val nodesToVisit = { nodeId: NodeId =>
         connectionMap(nodeId).map(_.to).filter(n => !visited(n)).toSet.toList
       }
@@ -43,7 +39,11 @@ object Solution {
         }
       }
 
-      while (!queue.isEmpty) {
+      val nextNode = {
+      
+      }
+
+      while (!toVisit.isEmpty) {
         val nodeId = queue.dequeue
         
         visited(nodeId) = true
@@ -61,11 +61,20 @@ object Solution {
       c.sortBy(_.distance)
     }
 
-    private def initMap[V](v: () => V): mutable.Map[NodeId, V] = {
+    private def dist[V](start: NodeId, default: () => V): mutable.Map[NodeId, V] = {
       val map = mutable.Map.empty[NodeId, V]
-      nodes.foreach(n => map(n.id) = v())
+      nodes.foreach(n => map(n.id) = default())
+      map(start) = 0
       map
     }
+
+    private def toVisit() = {
+      val set = mutable.Set.empty[NodeId]
+      nodes.foreach(n => set += n.id)
+      set
+    }
+
+
   }
 
   case class TestCase(graph: Graph, start: NodeId)
