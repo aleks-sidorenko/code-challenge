@@ -1,0 +1,1 @@
+[Picking Number](https://www.hackerrank.com/challenges/picking-numbers)
