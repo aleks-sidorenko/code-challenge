@@ -28,6 +28,9 @@ class HuffmanSuite extends FunSuite {
     }
   }
 
+  test("times('a', 'b', 'c', 'a', 'c')") {
+    assert(times(string2Chars("abcac")).sorted === List('a' -> 2, 'b' -> 1, 'c' -> 2).sorted)
+  }
 
   test("string2chars(\"hello, world\")") {
     assert(string2Chars("hello, world") === List('h', 'e', 'l', 'l', 'o', ',', ' ', 'w', 'o', 'r', 'l', 'd'))
@@ -48,6 +51,14 @@ class HuffmanSuite extends FunSuite {
   test("decode and encode a very short text should be identity") {
     new TestTrees {
       assert(decode(t1, encode(t1)("ab".toList)) === "ab".toList)
+      assert(decode(t2, encode(t2)("adb".toList)) === "adb".toList)
+    }
+  }
+
+
+  test("quick encode & decode should return identity") {
+    new TestTrees {
+      assert(decode(t2, quickEncode(t2)("adb".toList)) === "adb".toList)
     }
   }
 
