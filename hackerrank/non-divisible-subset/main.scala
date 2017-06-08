@@ -13,19 +13,29 @@ object Solution {
     }
 
     def nonDivisibleSubset(numbers: List[Int], k: Int): Int = {
-        def ok(max: List[Int], x: Int) = max.forall(m => (m + x) % k != 0)
+        val deduction = numbers.map(_ % k)
+            .groupBy(identity).mapValues { _.length }
 
-        def loop(numbers: List[Int], max: List[Int]): Int = numbers match {
-            case x :: xs => 
-                math.max(
-                    if (ok(max, x)) loop(xs, x :: max) else max.length,
-                    loop(xs, max)
-                )
-            case Nil => max.length
+        def lengthFor(d: Int): (Int, Int) = {
+            val v = deduction.getOrElse(d, 0)
+            val o = deduction.getOrElse(k - d, 0)
+            if (d == 0 || d * 2 == k) d -> math.min(1, v)
+            else if (v >= o) d -> v
+            else (k - d) -> o
         }
         
-        loop(numbers, Nil)
+        def loop(i: Int, included: Set[Int], length: Int): Int = {
+            if (i == k) length
+            else {
+                val (d, l) = lengthFor(i)
+                if (included(d)) loop(i + 1, included, length)
+                else loop(i + 1, included + d, length + l)
+            }
+        }
+
+        loop(0, Set.empty[Int], 0)
     }
+
 
     def main(args: Array[String]) {
         val (numbers, k) = readInput()
