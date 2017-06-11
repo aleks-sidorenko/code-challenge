@@ -78,4 +78,24 @@ class BloxorzSuite extends FunSuite {
     }
   }
 
+  trait Level2 extends SolutionChecker {
+    /* terrain for level 2*/
+
+    val level =
+      """ooo-------
+        |oS-ooo----
+        |oo-oooooo-
+        |-o-ooooooo
+        |-----ooToo
+        |------ooo-""".stripMargin
+
+
+  }
+
+  test("optimal solution for level 2 is empty") {
+    new Level2 {
+      assert(solution == Nil)
+    }
+  }
+
 }
