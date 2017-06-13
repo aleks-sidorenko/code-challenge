@@ -79,30 +79,45 @@ trait BinomialHeap extends Heap {
 trait Bogus1BinomialHeap extends BinomialHeap {
   override def findMin(ts: H) = ts match {
     case Nil => throw new NoSuchElementException("min of empty heap")
-    case t::ts => root(t)
+    case t::Nil => root(t)
+    case t::ts =>
+      val x = findMin(ts)
+      if (ord.lteq(root(t),x)) root(t) else x
   }
 }
 
 trait Bogus2BinomialHeap extends BinomialHeap {
   override protected def link(t1: Node, t2: Node): Node = // t1.r==t2.r
-    if (!ord.lteq(t1.x,t2.x)) Node(t1.x, t1.r+1, t2::t1.c) else Node(t2.x, t2.r+1, t1::t2.c)
+    if (ord.lteq(t1.x,t2.x)) Node(t1.x, t1.r+1, t2::t1.c) else Node(t2.x, t2.r+1, t1::t2.c)
 }
 
 trait Bogus3BinomialHeap extends BinomialHeap {
   override protected def link(t1: Node, t2: Node): Node = // t1.r==t2.r
-    if (ord.lteq(t1.x,t2.x)) Node(t1.x, t1.r+1, t1::t1.c) else Node(t2.x, t2.r+1, t2::t2.c)
+    if (ord.lteq(t1.x,t2.x)) Node(t1.x, t1.r+1, t2::t1.c) else Node(t2.x, t2.r+1, t1::t2.c)
 }
 
 trait Bogus4BinomialHeap extends BinomialHeap {
   override def deleteMin(ts: H) = ts match {
     case Nil => throw new NoSuchElementException("delete min of empty heap")
-    case t::ts => meld(t.c.reverse, ts)
+    case t::ts =>
+      def getMin(t: Node, ts: H): (Node, H) = ts match {
+        case Nil => (t, Nil)
+        case tp::tsp =>
+          val (tq,tsq) = getMin(tp, tsp)
+          if (ord.lteq(root(t),root(tq))) (t,ts) else (tq,t::tsq)
+      }
+      val (Node(_,_,c),tsq) = getMin(t, ts)
+      meld(c.reverse, tsq)
   }
 }
 
 trait Bogus5BinomialHeap extends BinomialHeap {
-  override def meld(ts1: H, ts2: H) = ts1 match {
-    case Nil => ts2
-    case t1::ts1 => List(Node(t1.x, t1.r, ts1++ts2))
+  override def meld(ts1: H, ts2: H) = (ts1, ts2) match {
+    case (Nil, ts) => ts
+    case (ts, Nil) => ts
+    case (t1::ts1, t2::ts2) =>
+      if (t1.r<t2.r) t1::meld(ts1,t2::ts2)
+      else if (t2.r<t1.r) t2::meld(t1::ts1,ts2)
+      else ins(link(t1,t2),meld(ts1,ts2))
   }
 }
