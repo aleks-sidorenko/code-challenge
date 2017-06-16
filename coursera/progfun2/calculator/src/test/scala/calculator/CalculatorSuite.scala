@@ -51,4 +51,70 @@ class CalculatorSuite extends FunSuite with ShouldMatchers {
     assert(resultRed2() == "red")
   }
 
+
+  test("computeSolutions with multiple roots") {
+    val (a, b, c) = (Var(1d), Var(1d), Var(-6d))
+    val delta = Polynomial.computeDelta(a, b, c)
+    val result = Polynomial.computeSolutions(a, b, c, delta)
+
+    assert(result() == Set(2, -3))
+
+  }
+
+  test("computeSolutions with same roots") {
+    val (a, b, c) = (Var(1d), Var(0d), Var(-1d))
+    val delta = Polynomial.computeDelta(a, b, c)
+    val result = Polynomial.computeSolutions(a, b, c, delta)
+
+    assert(result() == Set(1, -1))
+
+  }
+
+  test("computeValues with complex expression") {
+    val (a, b, c) = (Literal(1.0d), Literal(2.0d), Literal(3.0d))
+    val (d, e, f) = (Ref("a"), Ref("b"), Ref("c"))
+
+    val g = Times(Plus(a, d), b) // 4
+    val h = Divide(Minus(a, f), b) // -1
+
+    val expressions: Map[String, Signal[Expr]] = Map("a" -> Var(a), "b" -> Var(b), "c" -> Var(c),
+      "d" -> Var(d), "e" -> Var(e), "f" -> Var(f), "g" -> Var(g), "h" -> Var(h))
+
+    val expected: Map[String, Double] = Map("a" -> 1.0d, "b" -> 2.0d, "c" -> 3.0d,
+      "d" -> 1.0d, "e" -> 2.0d, "f" -> 3.0d, "g" -> 4.0d, "h" -> -1.0d)
+
+    val result = Calculator.computeValues(expressions).mapValues(e => e())
+
+    assert(result == expected)
+
+  }
+
+  test("computeValues with cyclic dependencies") {
+
+    val a = Plus(Ref("b"), Literal(1.0d))
+    val b = Times(Ref("a"), Literal(2.0d))
+
+    val expressions: Map[String, Signal[Expr]] = Map("a" -> Var(a), "b" -> Var(b))
+
+    val result = Calculator.computeValues(expressions).mapValues(e => e())
+
+    assert ( result("a").isNaN )
+    assert ( result("b").isNaN )
+
+  }
+
+  test("computeValues with non existend dependencies") {
+
+    val a = Plus(Ref("b"), Literal(1.0d))
+    val b = Times(Ref("c"), Literal(2.0d))
+
+    val expressions: Map[String, Signal[Expr]] = Map("a" -> Var(a), "b" -> Var(b))
+
+    val result = Calculator.computeValues(expressions).mapValues(e => e())
+
+    assert ( result("a").isNaN )
+    assert ( result("b").isNaN )
+
+  }
+
 }
