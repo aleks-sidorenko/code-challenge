@@ -1,4 +1,4 @@
-
+import common.task
 
 package object scalashop {
 
@@ -33,6 +33,8 @@ package object scalashop {
   class Img(val width: Int, val height: Int, private val data: Array[RGBA]) {
     def this(w: Int, h: Int) = this(w, h, new Array(w * h))
 
+    def inside(x: Int, y: Int) = 0 <= x && x < width && 0 <= y && y < height
+
     def apply(x: Int, y: Int): RGBA = data(y * width + x)
 
     def update(x: Int, y: Int, c: RGBA): Unit = data(y * width + x) = c
@@ -44,21 +46,41 @@ package object scalashop {
     if (radius == 0) return src(x, y)
 
     var r, g, b, a = 0
-    var k = 0
-    val diameter = radius + 2
+    var i, k = 0
+    val diameter = (radius + 1) * 2 - 1
     val n = diameter * diameter
 
-    while (k < n) {
-      val (xi, yi) = (clamp(x - radius + k % diameter, 0, src.width), clamp(y - radius + k / diameter, 0, src.height))
-      val p = src(xi, yi)
-      r += red(p)
-      g += green(p)
-      b += blue(p)
-      a += alpha(p)
-      k += 1
+    while (i < n) {
+      val (xi, yi) = (
+        x - radius + i % diameter,
+        y - radius + i / diameter
+      )
+
+      if (src.inside(xi, yi)) {
+        val p = src(xi, yi)
+        r += red(p)
+        g += green(p)
+        b += blue(p)
+        a += alpha(p)
+        k += 1
+      }
+
+
+      i += 1
     }
 
-    rgba(r / n, g / n, b / n, a / n)
+    rgba(r / k, g / k, b / k, a / k)
+  }
+
+  def parallelSeq[A](tasks: Seq[() => A]): Seq[A] = {
+    tasks.map(t => task { t() }).map(_.join())
+  }
+
+  def splitToRanges(from: Int, to: Int, num: Int): Seq[(Int, Int)] = {
+    val size = to - from
+    val number = if (size >= num) num else size
+    val len = math.ceil(size.toDouble / number).toInt
+    (from until to).grouped(len).map(i => i.min -> (i.max + 1)).toList
   }
 
 }
