@@ -1,7 +1,6 @@
 package reductions
 
 import org.scalameter._
-import common._
 
 object ParallelCountChangeRunner {
 
@@ -46,7 +45,17 @@ object ParallelCountChange {
    *  coins for the specified amount of money.
    */
   def countChange(money: Int, coins: List[Int]): Int = {
-    ???
+    def loop(money: Int, coins: List[Int]): Int = {
+      if (money == 0) 1
+      else if (money < 0) 0
+      else coins match {
+        case c :: cs => loop(money - c, coins) + loop(money, cs)
+        case _ => 0
+      }
+
+    }
+
+    loop(money, coins.sorted)
   }
 
   type Threshold = (Int, List[Int]) => Boolean
@@ -55,20 +64,35 @@ object ParallelCountChange {
    *  specified list of coins for the specified amount of money.
    */
   def parCountChange(money: Int, coins: List[Int], threshold: Threshold): Int = {
-    ???
+    import common._
+
+    def loop(money: Int, coins: List[Int]): Int = {
+      if (threshold(money, coins)) countChange(money, coins)
+      else coins match {
+        case c :: cs =>
+          val (r1, r2) = parallel(loop(money - c, coins), loop(money, cs))
+          r1 + r2
+        case _ => 0
+      }
+
+    }
+
+    loop(money, coins)
   }
 
   /** Threshold heuristic based on the starting money. */
   def moneyThreshold(startingMoney: Int): Threshold =
-    ???
+    (money: Int, coins: List[Int]) => money.toDouble * 3 / (2 * startingMoney)  <= 1 || coins.isEmpty
 
   /** Threshold heuristic based on the total number of initial coins. */
   def totalCoinsThreshold(totalCoins: Int): Threshold =
-    ???
+    (money: Int, coins: List[Int]) => coins.length.toDouble * 3 / (2 * totalCoins)  <= 1 || money < 0
 
 
   /** Threshold heuristic based on the starting money and the initial list of coins. */
   def combinedThreshold(startingMoney: Int, allCoins: List[Int]): Threshold = {
-    ???
+    (money: Int, coins: List[Int]) => {
+      moneyThreshold(startingMoney)(money, coins) || totalCoinsThreshold(allCoins.length)(money, coins)
+    }
   }
 }
