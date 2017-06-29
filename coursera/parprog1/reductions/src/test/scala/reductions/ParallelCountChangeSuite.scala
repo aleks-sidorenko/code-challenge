@@ -12,6 +12,25 @@ import ParallelCountChange._
 @RunWith(classOf[JUnitRunner])
 class ParallelCountChangeSuite extends FunSuite {
 
+  test("moneyThreshold should return false when the money is greater than two-thirds of the starting money") {
+
+    val threshold = moneyThreshold(3)
+    assert(threshold(5, Nil) == false)
+    assert(threshold(2, Nil) == true)
+    assert(threshold(1, Nil) == true)
+
+    assert(threshold(5, List(1, 2, 3)) == false)
+    assert(threshold(2, List(1, 2, 3)) == true)
+    assert(threshold(1, List(1, 2, 3)) == true)
+
+  }
+
+  test("combinedThreshold should return false when the number of coins times money greater than half of the initial number of coins times starting money") {
+    val threshold = combinedThreshold(10, List(1, 2, 3, 4, 5))
+    assert(threshold(7, List(1, 2, 3, 4)) == false)
+  }
+
+
   test("countChange should return 0 for money < 0") {
     def check(money: Int, coins: List[Int]) = 
       assert(countChange(money, coins) == 0,
@@ -69,9 +88,12 @@ class ParallelCountChangeSuite extends FunSuite {
         s"parCountChange($money, $coins) should be $expected")
 
     check(50, List(1, 2, 5, 10), 341, combinedThreshold(50, List(1, 2, 5, 10)))
+    check(50, List(1, 2, 5, 10), 341, moneyThreshold(50))
+    check(50, List(1, 2, 5, 10), 341, totalCoinsThreshold(4))
 
     check(250, List(1, 2, 5, 10, 20, 50), 177863, combinedThreshold(250, List(1, 2, 5, 10, 20, 50)))
-
+    check(250, List(1, 2, 5, 10, 20, 50), 177863, moneyThreshold(250))
+    check(250, List(1, 2, 5, 10, 20, 50), 177863, totalCoinsThreshold(6))
   }
 
 
