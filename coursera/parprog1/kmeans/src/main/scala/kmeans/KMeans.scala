@@ -72,7 +72,7 @@ class KMeans {
     val oldMeans = means
     val newMeans = update(classified, means)
 
-    if (!converged(eta)(oldMeans, newMeans)) kMeans(points, newMeans, eta) else means // your implementation need to be tail recursive
+    if (!converged(eta)(oldMeans, newMeans)) kMeans(points, newMeans, eta) else newMeans // your implementation need to be tail recursive
   }
 }
 
@@ -80,7 +80,7 @@ class KMeans {
  *
  *  Note: deliberately uses reference equality.
  */
-class Point(val x: Double, val y: Double, val z: Double) {
+case class Point(x: Double, y: Double, z: Double) {
   private def square(v: Double): Double = v * v
   def squareDistance(that: Point): Double = {
     square(that.x - x)  + square(that.y - y) + square(that.z - z)
