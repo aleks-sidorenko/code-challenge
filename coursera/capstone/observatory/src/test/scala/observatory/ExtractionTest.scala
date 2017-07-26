@@ -2,14 +2,11 @@ package observatory
 
 import java.time.LocalDate
 
-import org.junit.runner.RunWith
 import org.scalactic.TolerantNumerics
 import org.scalatest.FunSuite
-import org.scalatest.junit.JUnitRunner
 
 
-@RunWith(classOf[JUnitRunner])
-class ExtractionTest extends FunSuite {
+trait ExtractionTest extends FunSuite {
 
   implicit val doubleEquality = TolerantNumerics.tolerantDoubleEquality(0.01)
 
