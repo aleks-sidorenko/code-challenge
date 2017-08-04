@@ -2,6 +2,8 @@ package observatory
 
 import java.time.LocalDate
 
+import com.sksamuel.scrimage.RGBColor
+
 
 
 case class Join(date: Date, location: Location, temperature: Double) {
@@ -25,7 +27,7 @@ object Location {
   def distance(location1: Location, location2: Location): Double = {
     val r = 6371000 // radius of Earth in m
 
-    r * Δσ(location1, location2)
+    math.abs(r * Δσ(location1, location2))
   }
 
   def apply(width: Int, height: Int, maxWidth: Int, maxHeight: Int): Location = {
@@ -54,11 +56,23 @@ final case class Location(lat: Double, lon: Double) {
 
 }
 
+object Color {
+  private def normalize(component: Int) = {
+    if (component < 0) 0
+    else if (component > 255) 255
+    else component
+  }
+
+  def withNormalization(red: Int, green: Int, blue: Int) = Color(normalize(red), normalize(green), normalize(blue))
+
+}
 
 final case class Color(red: Int, green: Int, blue: Int) {
+  require(0 <= red && red <= 255, "Red component is invalid")
+  require(0 <= green && green <= 255, "Green component is invalid")
+  require(0 <= blue && blue <= 255, "Blue component is invalid")
 
-  private val alpha = 0
 
-  def argb: Int = ((alpha & 0xFF) << 24) | ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | blue & 0xFF
+  def pixel = RGBColor(red, green, blue, 0).toPixel
 }
 

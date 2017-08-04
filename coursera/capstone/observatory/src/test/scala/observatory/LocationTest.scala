@@ -15,9 +15,17 @@ trait LocationTest extends FunSuite with Checkers {
     val cases = List(
       (Location(50.43, 30.52), Location(46.4666666667, 30.7333333333), 440800),
       (Location(-46.466667, -30.733333), Location(46.4666666667, 30.7333333333), 14585730),
-      (Location(50.43, 30.52), Location(52.520385, 13.4090013), 1202760 ))
+      (Location(50.43, 30.52), Location(52.520385, 13.4090013), 1202760 ),
+      (Location(90.0d,-180.0d), Location(-90.0d, -180.0d), 6371000 * 2),
+      (Location(-90.0d,-180.0d), Location(90.0d, -180.0d), 6371000 * 2),
+      (Location(90.0d, 180.0d), Location(90.0d, -180.0d), 0),
+      (Location(90.0d, -180.0d), Location(90.0d, -180.0d), 0)
+    )
 
-    cases.foreach { case (l1, l2, d) => assert(math.abs(Location.distance(l1, l2).toLong - d) / d <= precision) }
+    cases.foreach { case (l1, l2, d) =>
+      if (d > 0) assert(math.abs(Location.distance(l1, l2).toLong - d) / d <= precision)
+      else assert(math.abs(Location.distance(l1, l2).toLong - d) <= precision)
+    }
 
   }
 

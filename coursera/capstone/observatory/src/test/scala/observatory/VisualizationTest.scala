@@ -14,7 +14,8 @@ trait VisualizationTest extends FunSuite with Checkers {
   test("'predictTemperature' should predict temperatures in location close to stations") {
     val cases = List(
       Location(69.283d, 018.133d) -> -1.29d,
-      Location(74.517d, 019.017d) -> 0.42d
+      Location(74.517d, 019.017d) -> 0.42d,
+      Location(90.0d,-180.0d) -> -1.70d
     )
 
     cases.foreach { case (l, t) => assert(Visualization.predictTemperature(locateAverage, l) === t) }
@@ -23,8 +24,8 @@ trait VisualizationTest extends FunSuite with Checkers {
 
   test("'predictTemperature' should predict temperatures in location far from stations") {
     val cases = List(
-      Location(71.250d, 18.5d) -> 2.47d,
-      Location(79.05d, 15.25d) -> -1.70d
+      Location(71.250d, 18.5d) -> 2.79d,
+      Location(79.05d, 15.25d) -> -1.60d
     )
 
     cases.foreach { case (l, t) => assert(Visualization.predictTemperature(locateAverage, l) === t) }
@@ -58,13 +59,25 @@ trait VisualizationTest extends FunSuite with Checkers {
   }
 
 
+  test("'predictTemperature' & 'interpolateColor' should be correct") {
+    val cases = List(
+      Location(90.0d,-180.0d) ->  Color(255,0,0)
+    )
+
+    cases.foreach { case (l, c) =>
+      val t = Visualization.predictTemperature(locateAverage, l)
+      assert(Visualization.interpolateColor(colors, t) === c)
+    }
+
+  }
+
   test("'visualize' should create image") {
 
     val image = Visualization.visualize(locateAverage, colors)
     assert(image.width === 360)
     assert(image.height === 180)
 
-    val file = Paths.get(Paths.get(getClass.getResource(stationsFile).toURI).getParent.toString, "visualize.png")
+    val file = Paths.get(Paths.get(getClass.getResource(stationsFile).toURI).getParent.toString, s"visualize-${year}.png")
     image.output(file)
 
     assert(file.toFile.exists())

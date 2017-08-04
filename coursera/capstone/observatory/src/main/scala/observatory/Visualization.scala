@@ -44,7 +44,7 @@ object Visualization {
     if (distance <= minDistance)
       temperature
     else
-      idw(distances, power = 2)
+      idw(distances, power = 3)
   }
 
 
@@ -76,24 +76,21 @@ object Visualization {
       math.round(li(t0, t1)(t)).toInt
     }
 
-    sorted.zipWithIndex.find { case ((t, _), _) => t > value } match {
+    val index: Int = sorted.zipWithIndex.find { case ((t, _), _) => t > value } match {
       case Some(f) =>
-        val ((_, c), i) = f
-        if (i == 0)
-          c
-        else {
-          val x0 = sorted(i - 1)
-          val x1 = sorted(i)
-          Color(
-            interpolateColor(x0, x1, _.red)(value),
-            interpolateColor(x0, x1, _.green)(value),
-            interpolateColor(x0, x1, _.blue)(value)
-          )
-        }
+        val (_, i) = f
+        if (i > 0) i - 1 else i
       case None =>
-        val (_, c) = sorted.last
-        c
+        sorted.length - 2
     }
+
+    val x0 = sorted(index)
+    val x1 = sorted(index + 1)
+    Color.withNormalization(
+      interpolateColor(x0, x1, _.red)(value),
+      interpolateColor(x0, x1, _.green)(value),
+      interpolateColor(x0, x1, _.blue)(value)
+    )
 
   }
 
@@ -111,7 +108,7 @@ object Visualization {
       val location = Location(w, h)
       val temperature = predictTemperature(temperatures, location)
       val color = interpolateColor(colors, temperature)
-      Pixel(color.argb)
+      color.pixel
     }
 
     Image(360, 180, pixels.toArray)
