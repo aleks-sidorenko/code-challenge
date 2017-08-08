@@ -4,6 +4,10 @@ import java.time.LocalDate
 
 import com.sksamuel.scrimage.RGBColor
 
+import scala.annotation.tailrec
+import scala.collection.{GenIterable, GenSeqLike}
+import scala.math._
+
 
 
 case class Join(date: Date, location: Location, temperature: Double) {
@@ -40,7 +44,6 @@ object Location {
   private def Δλ(location1: Location, location2: Location) = location1.λ - location2.λ
 
   private def Δσ(location1: Location, location2: Location): Double = {
-    import math._
     acos(sin(location1.φ) * sin(location2.φ) + cos(location1.φ) * cos(location2.φ) * cos (Δλ(location1, location2)))
   }
 
@@ -48,11 +51,8 @@ object Location {
 
 final case class Location(lat: Double, lon: Double) {
 
-
-  private def radians(v: Double) = v * math.Pi / 180
-
-  def φ = radians(lat)
-  def λ = radians(lon)
+  def φ = toRadians(lat)
+  def λ = toRadians(lon)
 
 }
 
@@ -72,7 +72,51 @@ final case class Color(red: Int, green: Int, blue: Int) {
   require(0 <= green && green <= 255, "Green component is invalid")
   require(0 <= blue && blue <= 255, "Blue component is invalid")
 
+  private val alpha = 127
 
-  def pixel = RGBColor(red, green, blue, 0).toPixel
+  def pixel = RGBColor(red, green, blue, alpha).toPixel
 }
 
+
+final case class Tile(zoom: Int, x: Int, y: Int) {
+
+  lazy val location = toLocation()
+
+  def zoomIn(newZoom: Int): GenIterable[Tile] = {
+    require(newZoom >= zoom)
+
+    @tailrec
+    def loop(curZoom: Int, tiles: GenIterable[Tile]): GenIterable[Tile] = {
+      if (curZoom == newZoom)
+        tiles
+      else
+        loop(curZoom + 1, tiles.flatMap(_.zoomInOnce))
+    }
+
+    loop(zoom, List(this).par)
+  }
+
+  def zoomInOnce() = {
+    val newZoom = zoom + 1
+    Tile(newZoom, 2*x, 2*y) ::
+      Tile(newZoom, 2*x + 1, 2*y) ::
+      Tile(newZoom, 2*x, 2*y + 1) ::
+      Tile(newZoom, 2*x + 1, 2*y + 1) ::
+      Nil
+  }
+
+  def uri = new java.net.URI("http://tile.openstreetmap.org/" + zoom + "/" + x + "/" + y + ".png")
+
+  def toLocation(): Location = {
+    val n = (1 << zoom)
+
+    require(x >= 0 && x <= n - 1)
+    require(y >= 0 && y <= n - 1)
+
+    val lat = toDegrees(atan(sinh(Pi * (1.0d - 2.0d * y / n))))
+    val lon = 360.0d * x / n - 180.0d
+
+    Location(lat, lon)
+
+  }
+}

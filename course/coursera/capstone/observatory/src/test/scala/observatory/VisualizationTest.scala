@@ -61,7 +61,7 @@ trait VisualizationTest extends FunSuite with Checkers {
 
   test("'predictTemperature' & 'interpolateColor' should be correct") {
     val cases = List(
-      Location(90.0d,-180.0d) ->  Color(255,0,0)
+      Location(90.0d,-180.0d) ->  Color(0,226,255)
     )
 
     cases.foreach { case (l, c) =>
