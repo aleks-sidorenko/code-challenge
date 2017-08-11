@@ -1,12 +1,18 @@
 package observatory
 
 import org.junit.runner.RunWith
+import org.scalacheck.{Arbitrary, Gen}
 import org.scalactic.TolerantNumerics
-import org.scalatest.FunSuite
+import org.scalatest.{FunSuite, ShouldMatchers}
 import org.scalatest.junit.JUnitRunner
+import org.scalacheck.Gen
+import org.scalacheck.Prop._
 import org.scalatest.prop.Checkers
 
-trait TileTest extends FunSuite with Checkers {
+import scala.collection.GenIterable
+
+
+trait TileTest extends FunSuite with Checkers with ShouldMatchers {
 
   test("'toLocation' should work") {
 
@@ -21,6 +27,21 @@ trait TileTest extends FunSuite with Checkers {
     cases.foreach { case (t, l) =>
       assert(t.location === l)
     }
+
+  }
+
+  test("tile must be consistent across zoom levels") {
+
+    val zero = Tile(0, 0, 0)
+
+    val tileGen: Gen[Tile] = for {
+      zoom <- Gen.choose(1, 12)
+    } yield zero.zoomIn(zoom).head
+
+
+    check(forAll(tileGen) { case (tile: Tile) =>
+      tile.x == zero.x && tile.y == zero.y
+    })
 
   }
 
