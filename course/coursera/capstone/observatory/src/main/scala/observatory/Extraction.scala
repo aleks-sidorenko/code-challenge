@@ -94,11 +94,14 @@ object Extraction {
     */
   def locationYearlyAverageRecords(records: Iterable[(LocalDate, Location, Double)]): Iterable[(Location, Double)] = {
 
-    spark.sparkContext.parallelize(records.toSeq)
-      .map { case (_, location, temperature) => (location, (temperature, 1)) }
-      .reduceByKey { case ((t1, c1), (t2, c2)) => (t1 + t2) -> (c1 + c2) }
-      .mapValues { case (temperature, count) => temperature / count }
-      .collect().toIterable
+    records.foldLeft[Map[Location, (Int, Double)]](Map.empty) { (map, r) =>
+      r match {
+        case (_, l, t) => {
+          val (tc, tt) = map.getOrElse(l, (0, 0.0))
+          map.updated(l, (tc + 1, tt + t))
+        }
+      }
+    } .mapValues { case (c, t)  => t / c }
   }
 
   private def fsPath(resource: String): String =
