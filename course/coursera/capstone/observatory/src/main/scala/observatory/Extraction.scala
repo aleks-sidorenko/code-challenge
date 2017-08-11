@@ -99,7 +99,6 @@ object Extraction {
       .reduceByKey { case ((t1, c1), (t2, c2)) => (t1 + t2) -> (c1 + c2) }
       .mapValues { case (temperature, count) => temperature / count }
       .collect().toIterable
-
   }
 
   private def fsPath(resource: String): String =

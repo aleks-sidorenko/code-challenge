@@ -28,10 +28,11 @@ final case class Station(id: StationId, location: Location)
 final case class Temperature(stationId: StationId, date: Date, temperature: Double)
 
 object Location {
-  def distance(location1: Location, location2: Location): Double = {
-    val r = 6371000 // radius of Earth in m
 
-    math.abs(r * Δσ(location1, location2))
+  val earthRadius = 6371000
+
+  def distance(location1: Location, location2: Location): Double = {
+    math.abs(earthRadius * Δσ(location1, location2))
   }
 
   def apply(width: Int, height: Int, maxWidth: Int, maxHeight: Int): Location = {
@@ -40,6 +41,7 @@ object Location {
 
     Location(90 - (height * heightRatio), (width * widthRadio) - 180)
   }
+
 
   private def Δλ(location1: Location, location2: Location) = location1.λ - location2.λ
 
@@ -53,6 +55,25 @@ final case class Location(lat: Double, lon: Double) {
 
   def φ = toRadians(lat)
   def λ = toRadians(lon)
+
+}
+
+final case class ImageSize(width: Int, height: Int) {
+
+  final case class ImageCell(x: Int, y: Int) {
+
+    def toLocation(): Location = Location(height / 2 - y, x - width / 2)
+
+  }
+
+  def cells(): GenIterable[ImageCell] = {
+    for {
+      y <- (0 until height).par
+      x <- 0 until width
+    } yield ImageCell(x, y)
+  }
+
+  def locations() = cells().map(_.toLocation())
 
 }
 

@@ -1,15 +1,39 @@
 package observatory
 
 
-import java.io.File
 import java.nio.file.Paths
 
-import observatory.Extraction.getClass
 import org.scalatest.FunSuite
 import org.scalatest.prop.Checkers
+import org.scalacheck.Gen
+import org.scalacheck.Prop._
+
+
 
 trait VisualizationTest extends FunSuite with Checkers {
   self: ExtractionTest =>
+
+
+  val locationGen = for {
+    lat <- Gen.choose(-90.0, 90.0)
+    lon <- Gen.choose(-180.0, 180.0)
+  } yield Location(lat, lon)
+
+  val sampleGen = {
+    val gen = for {
+      loc <- locationGen
+      value <- Gen.choose(-50.0, 50.0)
+    } yield (loc, value)
+
+    Gen.listOfN(10, gen)
+  }
+
+  val colourGen = for {
+    red <- Gen.choose(0, 255)
+    green <- Gen.choose(0, 255)
+    blue <- Gen.choose(0, 255)
+  } yield Color(red, green, blue)
+
 
   test("'predictTemperature' should predict temperatures in location close to stations") {
     val cases = List(
@@ -24,8 +48,8 @@ trait VisualizationTest extends FunSuite with Checkers {
 
   test("'predictTemperature' should predict temperatures in location far from stations") {
     val cases = List(
-      Location(71.250d, 18.5d) -> 2.79d,
-      Location(79.05d, 15.25d) -> -1.60d
+      Locations.london -> 4.97d,
+      Locations.kiev -> 2.51d
     )
 
     cases.foreach { case (l, t) => assert(Visualization.predictTemperature(locateAverage, l) === t) }
@@ -59,9 +83,39 @@ trait VisualizationTest extends FunSuite with Checkers {
   }
 
 
+  test("'interpolateColor' should interpolate properly random colors") {
+    val gen = for {
+      val1 <- Gen.choose(-50.0, 50.0)
+      col1 <- colourGen
+      val2 <- Gen.choose(-50.0, 50.0)
+      col2 <- colourGen
+      value <- Gen.choose(val1 min val2, val1 max val2)
+    } yield (List((val1, col1), (val2, col2)), value)
+
+    check(forAll(gen) {
+      case (points: List[(Double, Color)], value: Double) => {
+        val result = Visualization.interpolateColor(points, value)
+
+        def checkComponent(c: (Color => Int)) = {
+          c(result) >= points.map(p => c(p._2)).min &&
+            c(result) <= points.map(p => c(p._2)).max
+        }
+
+        all(
+          checkComponent(_.red),
+          checkComponent(_.green),
+          checkComponent(_.blue)
+        )
+      }
+    })
+  }
+
+
   test("'predictTemperature' & 'interpolateColor' should be correct") {
     val cases = List(
-      Location(90.0d,-180.0d) ->  Color(0,226,255)
+      Location(90.0d,-180.0d) ->  Color(0,226,255),
+      Locations.zero ->  Color(35,255,220),
+      Locations.kiev -> Color(53,255,202)
     )
 
     cases.foreach { case (l, c) =>
