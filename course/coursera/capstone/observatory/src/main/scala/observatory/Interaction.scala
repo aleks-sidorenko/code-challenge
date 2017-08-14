@@ -1,7 +1,12 @@
 package observatory
 
+import java.util.concurrent.Executors
+
 import com.sksamuel.scrimage.{Image, Pixel}
 import observatory.Visualization.{interpolateColor, predictTemperature}
+
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 /**
   * 3rd milestone: interactive visualization
@@ -52,13 +57,19 @@ object Interaction {
     generateImage: (Int, Int, Int, Int, Data) => Unit
   ): Unit = {
 
+
+    implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(8))
+
     val zeroTile = Tile(0, 0, 0)
     val years = yearlyData.par
-    for  {
+    val tasks = for  {
       (year, data) <- years
-      zoom <- (0 to 3).par
+      zoom <- 0 to 3
       t <- zeroTile.zoomIn(zoom)
-    } generateImage(year, zoom, t.x, t.y, data)
+    } yield Future { generateImage(year, zoom, t.x, t.y, data) }
+
+    Await.result(Future.sequence(tasks.seq), Duration.Inf)
+    ()
   }
 
 }

@@ -140,4 +140,45 @@ final case class Tile(zoom: Int, x: Int, y: Int) {
     Location(lat, lon)
 
   }
+
+}
+
+
+
+object LocationGrid {
+
+  type GridFunc = ((Int, Int) => Double)
+
+  def average(grids: GenIterable[GridFunc]): GridFunc  = {
+    (lat, lon) => {
+      val (temp, count) = grids.map(g => (g(lat, lon) -> 1)).reduce[(Double, Int)] {
+        case ((accTemp, accCount), (resTemp, resCount)) => (accTemp + resTemp) -> ( accCount + resCount)
+      }
+
+      temp / count
+    }
+  }
+
+
+
+}
+
+final case class LocationGrid(temperatures: Iterable[(Location, Double)]) extends LocationGrid.GridFunc {
+
+  import LocationGrid._
+
+  lazy val grid = (for {
+    lat <- -89 to 90
+    lon <- -180 to 179
+  } yield {
+    val location = Location(lat, lon)
+    location -> Visualization.predictTemperature(temperatures, location)
+  }).toMap
+
+  override def apply(lat: Int, lon: Int): Double = grid(Location(lat, lon))
+
+  def deviation(normals: GridFunc): GridFunc = {
+    (lat, lon) => this(lat, lon) - normals(lat, lon)
+  }
+
 }

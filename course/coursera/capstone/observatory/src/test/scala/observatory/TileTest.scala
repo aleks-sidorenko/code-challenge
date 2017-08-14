@@ -14,6 +14,7 @@ import scala.collection.GenIterable
 
 trait TileTest extends FunSuite with Checkers with ShouldMatchers {
 
+
   test("'toLocation' should work") {
 
     val cases = List(
@@ -34,15 +35,13 @@ trait TileTest extends FunSuite with Checkers with ShouldMatchers {
 
     val zero = Tile(0, 0, 0)
 
-    val tileGen: Gen[Tile] = for {
-      zoom <- Gen.choose(1, 12)
-    } yield zero.zoomIn(zoom).head
-
-
-    check(forAll(tileGen) { case (tile: Tile) =>
-      tile.x == zero.x && tile.y == zero.y
-    })
-
+    var zoomed = zero
+    for {
+      _ <- 1 to 12
+    } {
+      zoomed = zoomed.zoomInOnce().head
+      assert(zoomed.x == zero.x && zoomed.y == zero.y)
+    }
   }
 
 

@@ -7,6 +7,7 @@ import org.scalatest.junit.JUnitRunner
 class CapstoneSuite
   extends ExtractionTest
     with LocationTest
+    with TileTest
     with VisualizationTest
     with InteractionTest
     with ManipulationTest
