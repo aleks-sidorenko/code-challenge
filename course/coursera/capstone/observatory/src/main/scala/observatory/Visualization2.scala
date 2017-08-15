@@ -26,7 +26,7 @@ object Visualization2 {
     d10: Double,
     d11: Double
   ): Double = {
-    Interpolation.bilinearInterpolation(d00, d01, d10, d11)(x, y)
+    Math.bilinearInterpolation(d00, d01, d10, d11)(x, y)
   }
 
   /**
@@ -50,9 +50,11 @@ object Visualization2 {
     val imageSize = ImageSize(256, 256)
 
     val tile = Tile(zoom, x, y)
-    val locations = tile.zoomIn(zoom + 8).map(_.toLocation())
+    val tiles = tile.zoomIn(zoom + 8).zipWithIndex
 
-    val pixels = locations.map { case location =>
+    val pixels = tiles.par.map { case (tile, index) =>
+
+      val location = tile.toLocation()
 
       val (lonMin, lonMax) = minMax(location.lon)
       val (latMin, latMax) = minMax(location.lat)
@@ -65,8 +67,9 @@ object Visualization2 {
       val temperature = bilinearInterpolation(xDelta, yDelta, d00, d01, d10, d11)
 
       val color = interpolateColor(colors, temperature)
-      color.pixel
-    }
+      index -> color.pixel
+    } .seq.toSeq
+      .sortBy(_._1).map(_._2)
 
     Image(imageSize.width, imageSize.height, pixels.toArray)
   }

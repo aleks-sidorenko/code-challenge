@@ -62,13 +62,13 @@ final case class ImageSize(width: Int, height: Int) {
 
   final case class ImageCell(x: Int, y: Int) {
 
-    def toLocation(): Location = Location(height / 2 - y, x - width / 2)
+    def toLocation(): Location = Location(height.toDouble / 2 - y, x - width.toDouble / 2)
 
   }
 
-  def cells(): GenIterable[ImageCell] = {
+  def cells(): Iterable[ImageCell] = {
     for {
-      y <- (0 until height).par
+      y <- 0 until height
       x <- 0 until width
     } yield ImageCell(x, y)
   }
@@ -103,18 +103,18 @@ final case class Tile(zoom: Int, x: Int, y: Int) {
 
   lazy val location = toLocation()
 
-  def zoomIn(newZoom: Int): GenIterable[Tile] = {
+  def zoomIn(newZoom: Int): Iterable[Tile] = {
     require(newZoom >= zoom)
 
     @tailrec
-    def loop(curZoom: Int, tiles: GenIterable[Tile]): GenIterable[Tile] = {
+    def loop(curZoom: Int, tiles: Iterable[Tile]): Iterable[Tile] = {
       if (curZoom == newZoom)
         tiles
       else
         loop(curZoom + 1, tiles.flatMap(_.zoomInOnce))
     }
 
-    loop(zoom, List(this).par)
+    loop(zoom, List(this))
   }
 
   def zoomInOnce() = {
@@ -149,13 +149,10 @@ object LocationGrid {
 
   type GridFunc = ((Int, Int) => Double)
 
-  def average(grids: GenIterable[GridFunc]): GridFunc  = {
+  def average(grids: Iterable[GridFunc]): GridFunc  = {
     (lat, lon) => {
-      val (temp, count) = grids.map(g => (g(lat, lon) -> 1)).reduce[(Double, Int)] {
-        case ((accTemp, accCount), (resTemp, resCount)) => (accTemp + resTemp) -> ( accCount + resCount)
-      }
-
-      temp / count
+      val temps = grids.map(grid => grid(lat, lon))
+      temps.sum / temps.size
     }
   }
 

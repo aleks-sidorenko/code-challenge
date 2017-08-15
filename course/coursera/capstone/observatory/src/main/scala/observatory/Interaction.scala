@@ -1,12 +1,7 @@
 package observatory
 
-import java.util.concurrent.Executors
-
 import com.sksamuel.scrimage.{Image, Pixel}
 import observatory.Visualization.{interpolateColor, predictTemperature}
-
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future}
 
 /**
   * 3rd milestone: interactive visualization
@@ -35,13 +30,15 @@ object Interaction {
     val imageSize = ImageSize(256, 256)
 
     val tile = Tile(zoom, x, y)
-    val locations = tile.zoomIn(zoom + 8).map(_.toLocation())
+    val tiles = tile.zoomIn(zoom + 8).zipWithIndex
 
-    val pixels = locations.map { case location =>
+    val pixels = tiles.par.map { case (tile, index) =>
+      val location = tile.toLocation()
       val temperature = predictTemperature(temperatures, location)
       val color = interpolateColor(colors, temperature)
-      color.pixel
-    }
+      index -> color.pixel
+    } .seq.toSeq
+      .sortBy(_._1).map(_._2)
 
     Image(imageSize.width, imageSize.width, pixels.toArray)
   }

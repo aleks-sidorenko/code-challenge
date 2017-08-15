@@ -18,33 +18,8 @@ object Visualization {
     */
   def predictTemperature(temperatures: Iterable[(Location, Double)], location: Location): Double = {
 
-
-    def idw(pairs: GenIterable[(Double, Double)], power: Int): Double = {
-      val (ws, iws) = pairs
-        .aggregate((0.0, 0.0))(
-          {
-            case ((ws, iws), (x, y)) => {
-              val w = 1 / math.pow(x, power)
-              (w * y + ws, w + iws)
-            }
-          }, {
-            case ((ws1, iws1), (ws2, iws2)) => (ws1 + ws2, iws1 + iws2)
-          }
-        )
-
-      ws / iws
-    }
-
-    val distances = temperatures.par.map { case (l, t) => Location.distance(l, location) -> t }
-
-    val minDistance = 1000
-
-    val (distance, temperature) = distances.minBy { case (d, _) => d }
-
-    if (distance <= minDistance)
-      temperature
-    else
-      idw(distances, power = 3)
+    val distances = temperatures.map { case (l, t) => Location.distance(l, location) -> t }
+    Math.inverseDistanceWeighted(distances, power = 3, minDistance = 1000)
   }
 
 
@@ -65,7 +40,7 @@ object Visualization {
       val t0 = prepare(p0)
       val t1 = prepare(p1)
 
-      math.round(Interpolation.linearInterpolation(t0, t1)(t)).toInt
+      math.round(Math.linearInterpolation(t0, t1)(t)).toInt
     }
 
     val index: Int = sorted.zipWithIndex.find { case ((t, _), _) => t > value } match {
