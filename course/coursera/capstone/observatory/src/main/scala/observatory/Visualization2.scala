@@ -1,6 +1,7 @@
 package observatory
 
-import com.sksamuel.scrimage.{Image, Pixel}
+import com.sksamuel.scrimage.{Image}
+import observatory.Visualization.{interpolateColor}
 
 /**
   * 5th milestone: value-added information visualization
@@ -25,7 +26,7 @@ object Visualization2 {
     d10: Double,
     d11: Double
   ): Double = {
-    ???
+    Interpolation.bilinearInterpolation(d00, d01, d10, d11)(x, y)
   }
 
   /**
@@ -43,7 +44,31 @@ object Visualization2 {
     x: Int,
     y: Int
   ): Image = {
-    ???
+
+    def minMax(d: Double) = d.floor.toInt -> d.ceil.toInt
+
+    val imageSize = ImageSize(256, 256)
+
+    val tile = Tile(zoom, x, y)
+    val locations = tile.zoomIn(zoom + 8).map(_.toLocation())
+
+    val pixels = locations.map { case location =>
+
+      val (lonMin, lonMax) = minMax(location.lon)
+      val (latMin, latMax) = minMax(location.lat)
+
+      val (d00, d01, d10, d11) = (grid(latMin, lonMin), grid(latMax, lonMin), grid(latMin, lonMax), grid(latMax, lonMax))
+
+      val xDelta = location.lon - lonMin
+      val yDelta = location.lat - latMin
+
+      val temperature = bilinearInterpolation(xDelta, yDelta, d00, d01, d10, d11)
+
+      val color = interpolateColor(colors, temperature)
+      color.pixel
+    }
+
+    Image(imageSize.width, imageSize.height, pixels.toArray)
   }
 
 }

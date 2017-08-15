@@ -32,6 +32,7 @@ object Interaction {
     * @return A 256×256 image showing the contents of the tile defined by `x`, `y` and `zooms`
     */
   def tile(temperatures: Iterable[(Location, Double)], colors: Iterable[(Double, Color)], zoom: Int, x: Int, y: Int): Image = {
+    val imageSize = ImageSize(256, 256)
 
     val tile = Tile(zoom, x, y)
     val locations = tile.zoomIn(zoom + 8).map(_.toLocation())
@@ -42,7 +43,7 @@ object Interaction {
       color.pixel
     }
 
-    Image(256, 256, pixels.toArray)
+    Image(imageSize.width, imageSize.width, pixels.toArray)
   }
 
   /**
@@ -57,19 +58,13 @@ object Interaction {
     generateImage: (Int, Int, Int, Int, Data) => Unit
   ): Unit = {
 
-
-    implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(8))
-
     val zeroTile = Tile(0, 0, 0)
     val years = yearlyData.par
-    val tasks = for  {
+    for  {
       (year, data) <- years
       zoom <- 0 to 3
       t <- zeroTile.zoomIn(zoom)
-    } yield Future { generateImage(year, zoom, t.x, t.y, data) }
-
-    Await.result(Future.sequence(tasks.seq), Duration.Inf)
-    ()
+    } generateImage(year, zoom, t.x, t.y, data)
   }
 
 }

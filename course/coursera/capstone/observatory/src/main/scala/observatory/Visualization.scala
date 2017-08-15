@@ -57,14 +57,6 @@ object Visualization {
     val sorted = points.toArray.sortBy {case (t, _) => t }
 
 
-    def li(p0: (Double, Double), p1: (Double, Double))(x: Double): Double = {
-      val (x0, y0) = p0
-      val (x1, y1) = p1
-
-      val a = (y1 - y0) / (x1 - x0)
-      val b = y0 - a * x0
-      a * x + b
-    }
 
     def interpolateColor(p0: (Double, Color), p1: (Double, Color), f: Color => Int)(t: Double): Int = {
 
@@ -73,7 +65,7 @@ object Visualization {
       val t0 = prepare(p0)
       val t1 = prepare(p1)
 
-      math.round(li(t0, t1)(t)).toInt
+      math.round(Interpolation.linearInterpolation(t0, t1)(t)).toInt
     }
 
     val index: Int = sorted.zipWithIndex.find { case ((t, _), _) => t > value } match {
