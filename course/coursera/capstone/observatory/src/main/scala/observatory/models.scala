@@ -103,36 +103,36 @@ final case class Tile(zoom: Int, x: Int, y: Int) {
 
   lazy val location = toLocation()
 
-  def zoomIn(newZoom: Int): Iterable[Tile] = {
-    require(newZoom >= zoom)
+  val n = pow2(zoom)
 
-    @tailrec
-    def loop(curZoom: Int, tiles: Iterable[Tile]): Iterable[Tile] = {
-      if (curZoom == newZoom)
-        tiles
-      else
-        loop(curZoom + 1, tiles.flatMap(_.zoomInOnce))
-    }
+  require(x >= 0 && x <= n - 1)
+  require(y >= 0 && y <= n - 1)
 
-    loop(zoom, List(this))
+  @inline
+  private def pow2(x: Int) = 1 << x
+
+  def zoomIn(z: Int): Iterable[Tile] = {
+    require(z >= 0)
+
+    val n0 = pow2(z)
+
+    val x0 = pow2(z) * x
+    val y0 = pow2(z) * y
+
+    for {
+      i <- 0 until n0
+      j <- 0 until n0
+    } yield Tile(zoom + z, x0 + j, y0 + i)
   }
 
   def zoomInOnce() = {
-    val newZoom = zoom + 1
-    Tile(newZoom, 2*x, 2*y) ::
-      Tile(newZoom, 2*x + 1, 2*y) ::
-      Tile(newZoom, 2*x, 2*y + 1) ::
-      Tile(newZoom, 2*x + 1, 2*y + 1) ::
-      Nil
+    zoomIn(1)
   }
 
   def uri = new java.net.URI("http://tile.openstreetmap.org/" + zoom + "/" + x + "/" + y + ".png")
 
   def toLocation(): Location = {
-    val n = (1 << zoom)
 
-    require(x >= 0 && x <= n - 1)
-    require(y >= 0 && y <= n - 1)
 
     val lat = toDegrees(atan(sinh(Pi * (1.0d - 2.0d * y / n))))
     val lon = 360.0d * x / n - 180.0d
