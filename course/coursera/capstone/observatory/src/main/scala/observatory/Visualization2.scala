@@ -50,7 +50,7 @@ object Visualization2 {
     val imageSize = ImageSize(256, 256)
 
     val tile = Tile(zoom, x, y)
-    val tiles = tile.zoomIn(zoom + 8).zipWithIndex
+    val tiles = tile.zoomIn(8).zipWithIndex
 
     val pixels = tiles.par.map { case (tile, index) =>
 
