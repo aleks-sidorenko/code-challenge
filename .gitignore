@@ -1,9 +1,9 @@
 **/.idea/
 **/.vscode/
 **/target/*
-**/project/*
 **/*.class
 **/bin/
 **/obj/
 *.lock.json
 **/.DS_Store
+**/.dotty-ide*
