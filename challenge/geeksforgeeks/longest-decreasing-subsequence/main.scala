@@ -23,13 +23,24 @@ object Solution {
 
   case class Solution(numbers: List[Int]) {
 
-    // caching
-    val cache = collection.mutable.HashMap.empty[(Int, Int, Int), Int]
+    private val cache = collection.mutable.HashMap.empty[(Int, Int, Int), Int]
 
     final def solve(): Int = {
-      numbers.sum
+      def loop(nums: List[Int], min: Int, acc: Int): Int =
+        cache.getOrElseUpdate((nums.length, min, acc), {
+          nums match {
+            case x :: xs => 
+              if (x < min) Math.max(loop(xs, x, acc + 1), loop(xs, min, acc))
+              else Math.max(loop(xs, x, 0), loop(xs, min, acc))
+            case _ => acc
+          }
+        })
+      
+      loop(numbers, Int.MaxValue, 0)
     }
     
+    
+
   }
 
   def main(args: Array[String]) = {
