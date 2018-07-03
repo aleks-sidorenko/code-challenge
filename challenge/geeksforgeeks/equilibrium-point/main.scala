@@ -24,7 +24,14 @@ object Solution {
   case class Solution(numbers: List[Int]) {
 
     final def solve(): Option[Int] = {
-      None
+      val sum = numbers.sum
+      val (res, _) = numbers.zipWithIndex.foldLeft[(Option[Int], Int)](None -> 0) { case ((res, s), (n, i)) => 
+        if (res.isDefined) res -> s
+        else if (s == sum - n - s) Some(i) -> s
+        else None -> (s + n)
+      }
+
+      res.map(_ + 1)
     }
 
   }
