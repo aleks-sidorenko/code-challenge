@@ -50,8 +50,11 @@ object Solution {
       }
     }
 
-    def print: Option[T] = {
-      dequeue.map(enqueue(_))
+    def head: Option[T] = {
+      dequeue.map { x =>
+        b.push(x)
+        x
+      }
     }
 
     private def move(): Unit = {
@@ -66,7 +69,7 @@ object Solution {
     private val queue = new Queue[Int]
 
     final def solve(): List[Int] = {
-      ops.foldLeft(List.empty[Int]) {
+      val res = ops.foldLeft(List.empty[Int]) {
         case (acc, o) =>
           o match {
             case Enqeue(x: Int) =>
@@ -76,9 +79,10 @@ object Solution {
               queue.dequeue
               acc
             case Print =>
-              queue.print.map { _ :: acc }.getOrElse(acc)
+              queue.head.map { _ :: acc }.getOrElse(acc)
           }
       }
+      res.reverse
     }
 
   }
