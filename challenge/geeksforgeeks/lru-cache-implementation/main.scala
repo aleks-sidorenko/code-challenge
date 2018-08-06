@@ -31,15 +31,52 @@ object Solution {
   
   class LruCache[K, T](val limit: Limit) {
     private val queue = new mutable.LinkedHashMap[K, T]()
+    
+    private var exp: List[K] = Nil
 
-    def get(k: K): Option[T] = ???
+    def expired = exp.reverse
 
-    def put(k: K, v: T): Option[K] = ???
+    def get(k: K): Option[T] = {
+      queue.get(k) match {
+        case value @ Some(v) => 
+          update(k, v)
+          value
+        case _ => None
+      }
+    }
+
+    def put(k: K, v: T): Unit = {
+      if (queue.contains(k)) {
+        update(k, v)
+      } else {
+        queue.put(k, v)
+        expire()
+      }
+    }
+
+    private def expire() = {
+      if (queue.size > limit) { 
+        val (k, v) = queue.head
+        queue.remove(k)
+        exp = k :: exp
+      }
+    }
+
+    private def update(k: K, v: T) = {
+      queue.remove(k)
+      queue.put(k, v)
+    }
   }
 
   case class Solution(limit: Limit, input: List[Input]) {
-    private val cache = new LruCache[Int, String](limit)
-    final def solve(): List[Int] = Nil
+    private val cache = new LruCache[String, String](limit)
+    final def solve(): List[String] = {
+      input.foreach { 
+        case Put(k, v) => cache.put(k, v)
+        case Get(k) => cache.get(k)
+      }
+      cache.expired
+    }
 
   }
 
