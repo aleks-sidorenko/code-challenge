@@ -7,17 +7,15 @@ object Solution {
   }
 
   def solve(n: String): Int = {
-    
-    def loop(nums: List[Int], acc: Int): Int = {
-      nums match {
-        case x :: xs => math.max(loop(xs, acc * x), loop(xs, acc + x))
-        case _ => acc
-      }
+  
+    val nums = n.toList.map(_.asDigit)
+  
+    val isZeroOrOne = (x: Int) => x == 0 || x == 1
+    nums.reduce { (acc, x) => 
+      if (isZeroOrOne(x) || isZeroOrOne(acc)) x + acc
+      else x * acc
     }
-
-    val f :: rest = n.toList.map(_.asDigit)
     
-    loop(rest, f)
   }
 
   
