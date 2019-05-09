@@ -1,16 +1,29 @@
 object Solution {
-    def deckRevealedIncreasing(deck: Array[Int]): Array[Int] = {
         
-        def shift(lst: Seq[Int]): Seq[Int] = {
-            if (lst.isEmpty || lst.size == 1) lst
-            else {
-                val (head, last) = (lst.take(lst.length - 1), lst.last)
-                last +: head
+    def longestPalindrome(s: String): String = {
+        
+        val chars = s.toArray
+        val cache = Array.ofDim[Boolean](s.length, s.length)
+                
+        @inline
+        def isPalindrom(from: Int, to: Int): Boolean = {
+            cache(from)(to) = chars(from) == chars(to) && (to - from < 3 || cache(from + 1)(to - 1)) 
+            cache(from)(to)
+        } 
+        
+        var from = 0
+        var to = -1
+        
+        for {
+            f <- s.length - 1 to 0 by -1
+            t <- f until s.length
+        } { 
+            if (isPalindrom(f, t) && to - from < t - f) {
+                to = t
+                from = f
             }
         }
-        val sorted = deck.toList.sorted.reverse
-        sorted.foldLeft(Seq.empty[Int]) { (acc, x) => 
-            x +: shift(acc)
-        }.toArray
+                        
+        s.substring(from, to + 1)
     }
 }
