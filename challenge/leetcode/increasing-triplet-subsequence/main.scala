@@ -1,19 +1,12 @@
-/**
- * Definition for singly-linked list.
- * class ListNode(var _x: Int = 0) {
- *   var next: ListNode = null
- *   var x: Int = _x
- * }
- */
 object Solution {
-    def swapPairs(head: ListNode): ListNode = {
-        if (head == null || head.next == null) head
-        else {
-            val newHead = head.next
-            val tail = newHead.next
-            newHead.next = head
-            head.next = swapPairs(tail)
-            newHead
+    def increasingTriplet(nums: Array[Int]): Boolean = {
+        val (res, _, _) = nums.toList.foldLeft((false, Int.MaxValue, Int.MaxValue)) { 
+            case ((false, min1, min2), i) => 
+                if (i <= min1) (false, i, min2)                
+                else if (i <= min2) (false, min1, i)
+                else (true, min1, min2)
+            case ((true, min1, min2), _) => (true, min1, min2)
         }
+        res
     }
 }
