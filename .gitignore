@@ -7,3 +7,5 @@
 *.lock.json
 **/.DS_Store
 **/.dotty-ide*
+.metals/
+.scala-build/
