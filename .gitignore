@@ -9,3 +9,4 @@
 **/.dotty-ide*
 .metals/
 .scala-build/
+dist-newstyle/
