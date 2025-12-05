@@ -1,10 +1,10 @@
-module Main (main) where
+module Day01Spec (spec) where
 
 import Test.Hspec
 import Day01
 
-main :: IO ()
-main = hspec $ do
+spec :: Spec
+spec = do
   describe "rotate" $ do
     context "when rotating right" $ do
       it "wraps around once (50 + R120 -> (70, 1))" $
