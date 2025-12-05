@@ -11,7 +11,7 @@ cabal-version:      3.0
 --   http://haskell.org/cabal/users-guide/
 --
 -- The name of the package.
-name:               day01
+name:               adventofcode
 
 -- The package version.
 -- See the Haskell package versioning policy (PVP) for standards
@@ -59,7 +59,11 @@ library
     import:           warnings
 
     -- Modules exported by the library.
+    -- Add new day modules here as you implement them
     exposed-modules:  Day01
+                    , Day02
+                    -- , Day03
+                    -- ... add more days as needed
 
     -- Other library packages from which modules are imported.
     build-depends:    base ^>=4.21.0.0
@@ -70,7 +74,7 @@ library
     -- Base language which the package is written in.
     default-language: Haskell2010
 
-executable day01
+executable adventofcode
     -- Import common warning flags.
     import:           warnings
 
@@ -85,7 +89,7 @@ executable day01
 
     -- Other library packages from which modules are imported.
     build-depends:    base ^>=4.21.0.0
-                    , day01
+                    , adventofcode
 
     -- Directories containing source files.
     hs-source-dirs:   app
@@ -93,7 +97,7 @@ executable day01
     -- Base language which the package is written in.
     default-language: Haskell2010
 
-test-suite day01-test
+test-suite adventofcode-test
     -- Import common warning flags.
     import:           warnings
 
@@ -101,12 +105,19 @@ test-suite day01-test
     type:             exitcode-stdio-1.0
 
     -- .hs or .lhs file containing the test Main module.
-    main-is:          Day01Spec.hs
+    main-is:          Spec.hs
+
+    -- Other test modules (automatically discovered by hspec-discover)
+    -- Add new *Spec.hs files to test/ directory and they will be auto-discovered
+    -- No need to list them here!
 
     -- Other library packages from which modules are imported.
     build-depends:    base ^>=4.21.0.0
-                    , day01
+                    , adventofcode
                     , hspec ^>=2.11
+
+    -- Test discovery tool
+    build-tool-depends: hspec-discover:hspec-discover ^>=2.11
 
     -- Directories containing source files.
     hs-source-dirs:   test
