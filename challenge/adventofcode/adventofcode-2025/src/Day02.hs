@@ -1,5 +1,4 @@
--- Example template for Day 2
--- Rename this file to Day02.hs to use it
+
 
 module Day02 
   ( parseInput

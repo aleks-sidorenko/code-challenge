@@ -22,11 +22,10 @@ parseItem ('R':n) = RotateRight (read n)
 parseItem _ = error "Invalid rotate"
 
 -- Parse input function that takes a list of strings and returns a list of Rotates
-parseInput :: [String] -> Input
-parseInput = map parseItem . filter (\s -> (startWith s "R" || startWith s "L"))
+parseInput :: String -> Input
+parseInput = map parseItem . filter (\s -> (startWith s "R" || startWith s "L")) . lines
   where
-    startWith s prefix = take (length prefix) s == prefix
-
+    startWith s prefix = take (length prefix) s == prefix    
 
 -- Rotate function that takes a position and a rotation
 -- Returns new position (0-99) and count of how many times we passed through 0
@@ -54,6 +53,6 @@ process rotates startPosition = cnt where
 solve :: IO ()
 solve = do
   content <- readFile "input/day01.txt"
-  let input = parseInput (lines content)
+  let input = parseInput content
   let result = process input 50
   putStrLn $ "Result: " ++ show result
