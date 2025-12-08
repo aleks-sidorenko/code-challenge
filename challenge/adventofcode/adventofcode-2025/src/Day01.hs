@@ -12,6 +12,7 @@ module Day01
 type Count = Int
 type Position = Int
 data Rotate = RotateLeft Int | RotateRight Int deriving (Show, Eq)
+type Input = [Rotate]
 
 
 -- Parse function that takes a string and returns a Rotate
@@ -21,7 +22,7 @@ parseItem ('R':n) = RotateRight (read n)
 parseItem _ = error "Invalid rotate"
 
 -- Parse input function that takes a list of strings and returns a list of Rotates
-parseInput :: [String] -> [Rotate]
+parseInput :: [String] -> Input
 parseInput = map parseItem . filter (\s -> (startWith s "R" || startWith s "L"))
   where
     startWith s prefix = take (length prefix) s == prefix
