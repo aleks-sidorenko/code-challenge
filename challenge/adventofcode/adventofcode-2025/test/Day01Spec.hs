@@ -82,30 +82,30 @@ spec = do
     it "handles only empty strings" $
       parseInput "\n\n\n" `shouldBe` []
 
-  describe "process" $ do
-    it "processes single rotation with wrap" $
-      process [RotateRight 120] 50 `shouldBe` 1
+  describe "solvePart2" $ do
+    it "solves single rotation with wrap" $
+      solvePart2 [RotateRight 120] 50 `shouldBe` 1
     
-    it "processes multiple rotations with wraps" $
+    it "solves multiple rotations with wraps" $
       -- First: 50 + 120 = 170 -> position 70, count 1
       -- Second: 70 + 50 = 120 -> position 20, count 1
       -- Total count: 2
-      process [RotateRight 120, RotateRight 50] 50 `shouldBe` 2
+      solvePart2 [RotateRight 120, RotateRight 50] 50 `shouldBe` 2
     
-    it "processes rotations with no wraps" $
+    it "solves rotations with no wraps" $
       -- First: 10 + 10 = 20 -> position 20, count 0
       -- Second: 20 + 20 = 40 -> position 40, count 0
       -- Total count: 0
-      process [RotateRight 10, RotateRight 20] 10 `shouldBe` 0
+      solvePart2 [RotateRight 10, RotateRight 20] 10 `shouldBe` 0
     
-    it "processes mixed left and right rotations" $
+    it "solves mixed left and right rotations" $
       -- First: 50 + 60 = 110 -> position 10, count 1
       -- Second: 10 - 20 = -10 -> position 90, count 0
-      process [RotateRight 60, RotateLeft 20] 50 `shouldBe` 2
+      solvePart2 [RotateRight 60, RotateLeft 20] 50 `shouldBe` 2
     
-    it "processes empty rotation list" $
-      process [] 50 `shouldBe` 0
+    it "solves empty rotation list" $
+      solvePart2 [] 50 `shouldBe` 0
     
     it "accumulates multiple wraps correctly" $
       -- Each R100 from position 0 wraps once
-      process [RotateRight 100, RotateRight 100, RotateRight 100] 0 `shouldBe` 3
+      solvePart2 [RotateRight 100, RotateRight 100, RotateRight 100] 0 `shouldBe` 3

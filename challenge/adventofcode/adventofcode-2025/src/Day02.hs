@@ -74,6 +74,6 @@ solve :: IO ()
 solve = do
   content <- readFile "input/day02.txt"
   let input = parseInput content
-  putStrLn $ "Day 2 Solutions:"
+  putStrLn $ "Solutions:"
   putStrLn $ "Part 1: " ++ show (solvePart1 input)
   putStrLn $ "Part 2: " ++ show (solvePart2 input)

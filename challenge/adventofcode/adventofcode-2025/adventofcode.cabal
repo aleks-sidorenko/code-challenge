@@ -63,6 +63,7 @@ library
     exposed-modules:  Day01
                     , Day02
                     , Day03
+                    , Day04
                     -- ... add more days as needed
 
     -- Other library packages from which modules are imported.

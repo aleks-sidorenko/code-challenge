@@ -9,12 +9,13 @@ import qualified Day03
 -- SWITCH DAYS HERE - Just change this number!
 -- ============================================
 currentDay :: Int
-currentDay = 3
+currentDay = 4
 
 main :: IO ()
 main = case currentDay of
   1 -> Day01.solve
   2 -> Day02.solve
   3 -> Day03.solve
+  4 -> Day04.solve
   -- ... add more cases as you implement them
   _ -> putStrLn $ "Day " ++ show currentDay ++ " not implemented yet!"
