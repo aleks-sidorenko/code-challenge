@@ -69,18 +69,18 @@ spec = do
 
   describe "parseInput" $ do
     it "parses a list of rotations" $
-      parseInput ["R10", "L20", "", "R30"] `shouldBe` 
+      parseInput "R10\nL20\n\nR30" `shouldBe` 
         [RotateRight 10, RotateLeft 20, RotateRight 30]
     
     it "filters out empty strings" $
-      parseInput ["", "R10", "", "L20", ""] `shouldBe`
+      parseInput "\nR10\n\nL20\n" `shouldBe`
         [RotateRight 10, RotateLeft 20]
     
     it "handles empty input" $
-      parseInput [] `shouldBe` []
+      parseInput "" `shouldBe` []
     
     it "handles only empty strings" $
-      parseInput ["", "", ""] `shouldBe` []
+      parseInput "\n\n\n" `shouldBe` []
 
   describe "process" $ do
     it "processes single rotation with wrap" $

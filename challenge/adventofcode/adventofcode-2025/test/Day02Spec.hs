@@ -1,6 +1,3 @@
--- Example template for Day 2 tests
--- Rename this file to Day02Spec.hs to use it
-
 module Day02Spec (spec) where
 
 import Test.Hspec
