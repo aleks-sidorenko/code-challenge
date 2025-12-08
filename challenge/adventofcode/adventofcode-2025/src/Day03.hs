@@ -23,18 +23,8 @@ parseInput = map parseBattery . lines where
     
 
 largestJoltage1 :: Battery -> Joltage
-largestJoltage1 xs = 
-  let allExceptLast = init xs
-      maxVal = maximum allExceptLast
-      maxIndex = firstIndexOf maxVal allExceptLast
-      secondPartition = drop (maxIndex + 1) xs
-      maxSecond = maximum secondPartition
-  in maxVal * 10 + maxSecond
-  where
-    firstIndexOf :: Eq a => a -> [a] -> Int
-    firstIndexOf x xs = 
-      let indices = [i | (i, v) <- zip [0..] xs, v == x]
-      in head indices 
+largestJoltage1 = 
+  largestJoltage2 2
 
 largestJoltage2 :: Int -> Battery -> Joltage
 largestJoltage2 n xs = digitsToJoltage $ reverse $ loop n xs []
