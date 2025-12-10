@@ -11,26 +11,20 @@ module Day02
   ) where
 
 
+import Data.List.Split (splitOn)
+
 type Range = (Int, Int)
 type Input = [Range]
 
--- Helper function to split a string by a delimiter
-split :: Char -> String -> [String]
-split _ "" = [""]
-split delimiter (c:cs)
-  | c == delimiter = "" : rest
-  | otherwise = (c : head rest) : tail rest
-  where
-    rest = split delimiter cs
 
 -- Parse the input file into your data structure
 parseInput :: String -> Input
 parseInput content =
-  let ranges = split ',' content
+  let ranges = splitOn "," content
   in map parseRange ranges
   where
     parseRange range = 
-      let [from, to] = split '-' range
+      let [from, to] = splitOn "-" range
       in (read from, read to)
 
 invalidIds :: (Int -> Bool) -> Range -> [Int]
