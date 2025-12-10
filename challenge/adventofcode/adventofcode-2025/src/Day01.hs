@@ -5,7 +5,7 @@ module Day01
   , parseItem
   , parseInput
   , rotate
-  , process
+  , solvePart2
   , solve
   ) where
 
@@ -43,8 +43,8 @@ rotate position rt = (np, nc) where
 
 -- Process function that takes a list of rotations and starting position
 -- Returns the total count of zero crossings
-process :: [Rotate] -> Position -> Int
-process rotates startPosition = cnt where
+solvePart2 :: [Rotate] -> Position -> Int
+solvePart2 rotates startPosition = cnt where
   (_, cnt) = foldl rotate2 (startPosition, 0) rotates
   rotate2 (p, c) r = 
     let (np, nc) = rotate p r        
@@ -54,5 +54,6 @@ solve :: IO ()
 solve = do
   content <- readFile "input/day01.txt"
   let input = parseInput content
-  let result = process input 50
-  putStrLn $ "Result: " ++ show result
+  let result = solvePart2 input 50
+  putStrLn $ "Solutions:"
+  putStrLn $ "Part 2: " ++ show result
