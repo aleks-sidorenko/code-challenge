@@ -27,6 +27,13 @@ coords grid = [(x, y) | x <- [0..width-1], y <- [0..height-1]]
 foldGrid :: Grid -> t -> (t -> Coord -> t) -> t
 foldGrid grid initial f = foldl f initial (coords grid)
 
+mapGrid :: Grid -> (Coord -> Cell -> Cell) -> Grid
+mapGrid grid f = map mapRow (zip [0..] grid)
+  where    
+    mapRow :: (Int, [Cell]) -> [Cell]
+    mapRow (y, row) = map (\(x, cell) -> f (x, y) cell) (zip [0..] row)
+
+
 dimensions :: Grid -> Dimensions
 dimensions grid = (length (head grid), length grid)
 
@@ -60,6 +67,8 @@ isAccessible grid coord = paper && neighbors < 4
     cell2Int Empty = 0
 
 
+accessibleCells :: Grid -> [Coord]
+accessibleCells grid = filter (isAccessible grid) (coords grid)
 
 
 
@@ -76,10 +85,18 @@ parseInput content = map parseLine (filter (not . null) (lines content))
     
     
 solvePart1 :: Input -> Int
-solvePart1 grid = foldGrid grid 0 (\acc coord -> if isAccessible grid coord then acc + 1 else acc)
+solvePart1 = length . accessibleCells
    
 solvePart2 :: Input -> Int
-solvePart2 = undefined
+solvePart2 grid = loop grid 0
+  where
+    loop :: Grid -> Int -> Int
+    loop grid acc = if cur == 0 then acc else loop newGrid (acc + cur)
+      where
+        cells = accessibleCells grid
+        cur = length cells
+        newGrid = mapGrid grid (\coord cell -> if isAccessible grid coord then Empty else cell)
+      
 
 
 -- Main solve function - reads input and prints results
@@ -89,4 +106,4 @@ solve = do
   let input = parseInput content
   putStrLn $ "Solutions:"
   putStrLn $ "Part 1: " ++ show (solvePart1 input)
-  -- putStrLn $ "Part 2: " ++ show (solvePart2 input)
+  putStrLn $ "Part 2: " ++ show (solvePart2 input)

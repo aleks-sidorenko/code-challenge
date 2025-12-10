@@ -61,4 +61,19 @@ spec = do
       let grid = parseInput input
       print $ show grid
       solvePart1 grid `shouldBe` 13
+  
+  describe "solvePart2" $ do
+    it "solves the example input (should be 43)" $ do
+      let input = "..@@.@@@@.\n\
+                  \@@@.@.@.@@\n\
+                  \@@@@@.@.@@\n\
+                  \@.@@@@..@.\n\
+                  \@@.@@@@.@@\n\
+                  \.@@@@@@@.@\n\
+                  \.@.@.@.@@@\n\
+                  \@.@@@.@@@@\n\
+                  \.@@@@@@@@.\n\
+                  \@.@.@@@.@."
+      let grid = parseInput input
+      solvePart2 grid `shouldBe` 43
    
