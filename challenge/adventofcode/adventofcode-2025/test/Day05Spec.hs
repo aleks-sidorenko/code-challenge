@@ -31,4 +31,10 @@ spec = do
       let content = "3-5\n10-14\n16-20\n12-18\n\n1\n5\n8\n11\n17\n32\n"
       let input = parseInput content
       solvePart1 input `shouldBe` 3
+  
+  describe "solvePart2" $ do
+    it "solves the example input" $ do
+      let content = "3-5\n10-14\n16-20\n12-18\n\n1\n5\n8\n11\n17\n32\n"
+      let input = parseInput content
+      solvePart2 input `shouldBe` 14
 
